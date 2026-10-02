@@ -1,0 +1,112 @@
+.channels-page {
+  --background: linear-gradient(180deg, #071525 0%, var(--sync-secondary) 100%);
+}
+
+.channels-header ion-toolbar {
+  --background: transparent;
+  --color: #fff;
+}
+
+.channels-header ion-title {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+
+.hero {
+  padding: 8px 22px 20px;
+  color: #fff;
+
+  h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 30px;
+    margin: 0;
+  }
+
+  p {
+    color: var(--sync-text-secondary);
+    font-family: 'Roboto', sans-serif;
+    margin: 6px 0 0;
+  }
+}
+
+.channel-list {
+  padding: 0 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.channel-card {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  animation: card-in 0.35s ease-out;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.channel-info {
+  flex: 1;
+  min-width: 0;
+
+  .name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  strong {
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+  }
+
+  small {
+    color: var(--sync-text-secondary);
+    font-family: 'Roboto', sans-serif;
+    display: block;
+    margin-top: 4px;
+  }
+}
+
+.status {
+  font-size: 11px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sync-teal);
+  white-space: nowrap;
+
+  &.busy { color: var(--sync-warning); }
+  &.emergency { color: var(--sync-danger); }
+}
+
+.chevron {
+  color: #64748b;
+  font-size: 20px;
+}

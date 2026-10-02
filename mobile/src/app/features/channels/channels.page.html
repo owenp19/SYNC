@@ -1,0 +1,34 @@
+<ion-header class="channels-header">
+  <ion-toolbar>
+    <ion-title>SYNC · Canales</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="channels-page" fullscreen>
+
+  <div class="hero">
+    <h1>Tus canales</h1>
+    <p>Selecciona un canal para comenzar a transmitir</p>
+  </div>
+
+  <div class="channel-list">
+    <button class="channel-card" *ngFor="let c of channels" (click)="open(c)">
+      <div class="icon-wrap" [style.background]="c.color + '22'" [style.color]="c.color">
+        <ion-icon [name]="c.icon"></ion-icon>
+      </div>
+
+      <div class="channel-info">
+        <div class="name-row">
+          <strong>{{ c.name }}</strong>
+          <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.status === 'emergency'">
+            {{ statusLabel(c) }}
+          </span>
+        </div>
+        <small>{{ c.description }}</small>
+      </div>
+
+      <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+    </button>
+  </div>
+
+</ion-content>

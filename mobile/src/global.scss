@@ -1,0 +1,11 @@
+@use 'theme/variables.scss';
+@use 'theme/typography.scss' as sync-typography;
+@use 'theme/animations.scss';
+
+/* Ionic core CSS */
+@use '@ionic/angular/css/core.css' as ionic-core;
+@use '@ionic/angular/css/normalize.css' as ionic-normalize;
+@use '@ionic/angular/css/structure.css' as ionic-structure;
+@use '@ionic/angular/css/typography.css' as ionic-typography;
+@use '@ionic/angular/css/display.css' as ionic-display;
+

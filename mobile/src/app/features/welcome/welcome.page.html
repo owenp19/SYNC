@@ -1,0 +1,72 @@
+<ion-content fullscreen class="welcome-page">
+
+  <!-- FONDO CARRUSEL AUTOMÁTICO -->
+  <div class="bg-carousel">
+    <div class="bg-track">
+      <div class="bg-slide bg-1"></div>
+      <div class="bg-slide bg-2"></div>
+      <div class="bg-slide bg-3"></div>
+      <div class="bg-slide bg-1"></div>
+    </div>
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="screen-container">
+
+    <!-- MARCA -->
+    <header class="brand">
+      <img src="assets/branding/logos/sync_logo_horizontal_primary.png" alt="SYNC Logo">
+      <span class="brand-tag">INSTANT ENTERPRISE RADIO</span>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="pill">
+        <ion-icon name="wifi-outline"></ion-icon>
+        <span>Conectado y listo</span>
+      </div>
+
+      <h1>
+        Conecta tu equipo.
+        <span>Todo en un solo canal.</span>
+      </h1>
+
+      <p>
+        Comunicación instantánea, segura y eficiente para hoteles y organizaciones.
+      </p>
+    </section>
+
+    <!-- PUNTOS DE VALOR -->
+    <section class="features">
+      <div class="feature">
+        <ion-icon name="mic"></ion-icon>
+        <span>Push-To-Talk</span>
+      </div>
+      <div class="feature">
+        <ion-icon name="lock-closed"></ion-icon>
+        <span>Canales privados</span>
+      </div>
+      <div class="feature">
+        <ion-icon name="people"></ion-icon>
+        <span>Multi-departamento</span>
+      </div>
+    </section>
+
+    <!-- INDICADORES -->
+    <div class="dots">
+      <span *ngFor="let d of [0,1,2]" [class.active]="activeDot === d"></span>
+    </div>
+
+    <!-- CTA -->
+    <button class="start-button" (click)="startApp()">
+      <span>Comenzar</span>
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+    </button>
+
+    <p class="footnote">SYNC © 2026 · Seguro · Confiable · Global</p>
+
+  </div>
+
+</ion-content>
+

@@ -1,0 +1,12 @@
+@use 'fonts' as *;
+
+h1, h2, h3, h4, h5, h6, .title, ion-title {
+  font-family: $font-titles;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+body, button, input, textarea, ion-button, ion-label, ion-input {
+  font-family: $font-body;
+}
+

@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "angular.ng-template",
+    "ionic-team.ionic",
+    "johnpapa.angular2",
+    "pmloypotenciacr.antonio-typescript-importer",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-rename-tag",
+    "formulahendry.auto-close-tag",
+    "usernamehw.errorlens",
+    "mikestead.dotenv",
+    "eamodio.gitlens",
+    "christian-kohler.path-intellisense",
+    "pkief.material-icon-theme"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "@ionic/angular/types/ionic-angular.d.ts",
+    "@ionic/angular/types/ionic-angular-common.d.ts"
+  ],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.autoSave": "onFocusChange",
+  "prettier.singleQuote": true,
+  "prettier.printWidth": 100,
+  "eslint.validate": ["typescript", "html"]
+}

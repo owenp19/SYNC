@@ -1,0 +1,7 @@
+{
+  "name": "sync-mobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

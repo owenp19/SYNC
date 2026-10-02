@@ -1,0 +1,8 @@
+port: 7880
+rtc:
+  udp_port: 7882
+keys:
+  devkey: super-secret-key-for-sync-dev-only-32chars
+logging:
+  level: info
+

@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar color="secondary">
+    <ion-title>Canal {{ channel?.name }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-badge [color]="(voice.floorState$ | async) === 'transmitting' ? 'danger' : 'success'">
+        {{ (voice.floorState$ | async) === 'transmitting' ? 'OCUPADO' : 'LIBRE' }}
+      </ion-badge>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding ptt-page">
+  <div class="status-block">
+    <p *ngIf="voice.activeSpeaker$ | async as speaker">🔊 En vivo: {{ speaker }}</p>
+    <p *ngIf="voice.floorState$ | async as state">
+      {{ state === 'requesting' ? 'Solicitando canal...' :
+         state === 'transmitting' ? 'Transmitiendo...' :
+         state === 'denied' ? 'Canal ocupado, intenta luego' : 'Canal libre' }}
+    </p>
+  </div>
+
+  <button
+    class="ptt-button"
+    [class.live]="(voice.floorState$ | async) === 'transmitting'"
+    (pointerdown)="onPttDown()"
+    (pointerup)="onPttUp()"
+    (pointerleave)="onPttUp()"
+    (pointercancel)="onPttUp()">
+    <ion-icon name="mic"></ion-icon>
+    Mantén para hablar
+  </button>
+</ion-content>
+

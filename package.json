@@ -1,0 +1,17 @@
+{
+  "name": "sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SYNC - Radio digital empresarial (PTT)",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:infra": "docker compose -f infra/docker-compose.yml up -d",
+    "dev:backend": "cd backend && php artisan serve --host=0.0.0.0 --port=8000",
+    "dev:mobile": "cd mobile && npm start",
+    "build:mobile": "cd mobile && npm run build",
+    "sync:android": "cd mobile && npx cap sync android"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

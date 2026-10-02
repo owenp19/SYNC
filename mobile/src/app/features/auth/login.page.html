@@ -1,0 +1,28 @@
+<ion-content class="login-page" fullscreen>
+  <div class="screen-container">
+
+    <div class="brand">
+      <img src="assets/branding/logos/sync_logo_horizontal_primary.png" alt="SYNC">
+      <h1>SYNC</h1>
+      <p>RADIO DIGITAL EMPRESARIAL</p>
+    </div>
+
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+
+      <ion-item lines="none">
+        <ion-input label="Correo" labelPlacement="floating" [(ngModel)]="email" type="email"></ion-input>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-input label="Contraseña" labelPlacement="floating" [(ngModel)]="password" type="password"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" class="login-button" (click)="onLogin()">
+        Ingresar
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>
+
