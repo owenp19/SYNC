@@ -1,14 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBadge, IonIcon, ToastController } from '@ionic/angular';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon, ToastController } from '@ionic/angular';
 import { VoiceService } from '@core/services/voice.service';
 import { Channel } from '@core/models';
 
 @Component({
   selector: 'app-push-to-talk',
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBadge, IonIcon],
+  imports: [CommonModule, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon],
   templateUrl: './push-to-talk.page.html',
   styleUrls: ['./push-to-talk.page.scss']
 })
