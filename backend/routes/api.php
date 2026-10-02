@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/channels', [ChannelController::class, 'index']);
+Route::get('/channels/{channel}', [ChannelController::class, 'show']);
 
 // Rutas de voz y piso: en dev no exigen token (no hay flujo de login)
 Route::post('/auth/logout', [AuthController::class, 'logout']);

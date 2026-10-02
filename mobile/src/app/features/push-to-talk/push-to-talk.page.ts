@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@env/environment';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon, ToastController } from '@ionic/angular';
 import { VoiceService } from '@core/services/voice.service';
 import { Channel } from '@core/models';
@@ -16,11 +19,16 @@ export class PushToTalkPage implements OnInit, OnDestroy {
   channel: Channel | null = null;
   private channelId = 0;
 
-  constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController) {}
+  constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController, private http: HttpClient) {}
 
   async ngOnInit() {
     this.channelId = Number(this.route.snapshot.paramMap.get('id'));
-    this.channel = { id: this.channelId, name: `Canal ${this.channelId}`, type: 'private' };
+    try {
+      const c = await firstValueFrom(this.http.get<Channel>(`${environment.apiUrl}/channels/${this.channelId}`));
+      this.channel = c;
+    } catch {
+      this.channel = { id: this.channelId, name: `Canal ${this.channelId}`, type: 'private' };
+    }
     try {
       await this.voice.connect(this.channelId);
     } catch (e) {

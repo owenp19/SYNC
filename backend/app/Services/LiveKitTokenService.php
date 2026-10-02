@@ -8,10 +8,12 @@ use Agence104\LiveKit\VideoGrant;
 
 class LiveKitTokenService
 {
-    public function createToken(int $userId, int $channelId, string $userName): string
+    public function createToken(int $userId, int $channelId, string $userName, ?string $guestId = null): string
     {
         $options = new AccessTokenOptions;
-        $options->setIdentity("user-{$userId}");
+        // Identidad única por dispositivo: dos tablets del mismo usuario no se pisan
+        $identity = $guestId ? "user-{$userId}-{$guestId}" : "user-{$userId}";
+        $options->setIdentity($identity);
         $options->setName($userName);
         $options->setTtl(14400);
 

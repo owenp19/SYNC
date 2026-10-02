@@ -14,7 +14,10 @@ class VoiceController extends Controller
 
     public function token(Request $request)
     {
-        $data = $request->validate(['channel_id' => 'required|integer|exists:channels,id']);
+        $data = $request->validate([
+            'channel_id' => 'required|integer|exists:channels,id',
+            'guest_id' => 'nullable|string|max:64',
+        ]);
         $user = $request->user() ?? \App\Models\User::first();
         $channel = Channel::findOrFail($data['channel_id']);
 
@@ -26,7 +29,7 @@ class VoiceController extends Controller
         }
 
         return response()->json([
-            'token' => $this->tokens->createToken($user->id, $channel->id, $user->name),
+            'token' => $this->tokens->createToken($user->id, $channel->id, $user->name, $data['guest_id'] ?? null),
             'url' => config('livekit.host'),
         ]);
     }

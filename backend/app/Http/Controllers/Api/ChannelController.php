@@ -37,4 +37,25 @@ class ChannelController extends Controller
 
         return response()->json($channels);
     }
+
+    public function show(Channel $channel)
+    {
+        $occupied = $channel->occupied_by !== null
+            && $channel->floor_expires_at !== null
+            && $channel->floor_expires_at->isFuture();
+
+        if (! $occupied && $channel->occupied_by !== null) {
+            $channel->update(['occupied_by' => null, 'floor_expires_at' => null]);
+        }
+
+        return response()->json([
+            'id' => $channel->id,
+            'name' => $channel->name,
+            'type' => $channel->type,
+            'occupied_by' => $occupied ? $channel->occupied_by : null,
+            'occupier_name' => $occupied ? optional($channel->occupier)->name : null,
+            'floor_expires_at' => $occupied ? $channel->floor_expires_at?->toIso8601String() : null,
+            'status' => $occupied ? 'busy' : 'free',
+        ]);
+    }
 }

@@ -10,6 +10,7 @@ export type FloorState = 'free' | 'requesting' | 'transmitting' | 'denied';
 export class VoiceService implements OnDestroy {
   private room = new Room();
   private localTrack: LocalAudioTrack | null = null;
+  private remoteAudioEls: HTMLAudioElement[] = [];
 
   floorState$ = new BehaviorSubject<FloorState>('free');
   activeSpeaker$ = new BehaviorSubject<string | null>(null);
@@ -24,6 +25,7 @@ export class VoiceService implements OnDestroy {
         // livekit-client NO reproduce audio remoto por defecto: hay que adjuntar el track al DOM
         const el = (_t as any).attach() as HTMLAudioElement;
         el.autoplay = true;
+        this.remoteAudioEls.push(el);
         document.body.appendChild(el);
       }
     });
@@ -34,10 +36,23 @@ export class VoiceService implements OnDestroy {
   }
 
   async connect(channelId: number) {
+    if (this.connected$.value) {
+      await this.disconnect(); // siempre salimos de la sala anterior antes de entrar a otra
+    }
+    const guestId = this.getGuestId();
     const { token } = await firstValueFrom(
-      this.http.post<{ token: string }>(environment.livekitTokenEndpoint, { channel_id: channelId })
+      this.http.post<{ token: string; url: string }>(environment.livekitTokenEndpoint, { channel_id: channelId, guest_id: guestId })
     );
     await this.room.connect(environment.livekitUrl, token);
+  }
+
+  private getGuestId(): string {
+    let id = localStorage.getItem('sync_guest_id');
+    if (!id) {
+      id = Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('sync_guest_id', id);
+    }
+    return id;
   }
 
   /** PTT presionado: solicita el piso y publica el micrófono. */
@@ -81,6 +96,8 @@ export class VoiceService implements OnDestroy {
       this.localTrack = null;
     }
     await this.room.disconnect();
+    this.remoteAudioEls.forEach(el => el.remove());
+    this.remoteAudioEls = [];
     this.floorState$.next('free');
     this.activeSpeaker$.next(null);
   }
