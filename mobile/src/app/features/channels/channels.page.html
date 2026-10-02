@@ -35,6 +35,10 @@
 
 <ion-content id="main-content" class="channels-page" fullscreen>
 
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="hero">
     <p class="eyebrow">HOTEL &amp; STAFF</p>
     <h1>Departamentos</h1>
@@ -52,9 +56,10 @@
           <strong>{{ c.name }}</strong>
         </div>
         <small>{{ c.description }}</small>
-        <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.status === 'emergency'">
+        <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.type === 'emergency' && c.status !== 'busy'">
           <span class="dot"></span>{{ statusLabel(c) }}
         </span>
+        <small class="occupier" *ngIf="c.status === 'busy' && c.occupier_name">En uso por {{ c.occupier_name }}</small>
       </div>
 
       <span class="chevron-wrap">

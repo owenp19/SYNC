@@ -19,9 +19,17 @@ class DatabaseSeeder extends Seeder
 
         $this->call(SyncSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            ['name' => 'Recepción', 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
+        );
+
+        // Sin login activo: el usuario por defecto tiene permiso total en todos los canales
+        foreach (\App\Models\Channel::all() as $channel) {
+            \App\Models\ChannelPermission::firstOrCreate(
+                ['user_id' => $user->id, 'channel_id' => $channel->id],
+                ['can_listen' => true, 'can_transmit' => true]
+            );
+        }
     }
 }
