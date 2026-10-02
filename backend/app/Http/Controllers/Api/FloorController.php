@@ -14,7 +14,7 @@ class FloorController extends Controller
 
     public function acquire(Request $request, Channel $channel)
     {
-        $user = $request->user() ?? \App\Models\User::first();
+        $user = $request->user() ?? \App\Models\User::where('email', 'supervisor@sync.local')->first() ?? \App\Models\User::first();
 
         $permission = ChannelPermission::where('user_id', $user->id)
             ->where('channel_id', $channel->id)->first();
@@ -33,7 +33,7 @@ class FloorController extends Controller
 
     public function release(Request $request, Channel $channel)
     {
-        $this->floor->release($channel, ($request->user() ?? \App\Models\User::first())->id);
+        $this->floor->release($channel, ($request->user() ?? \App\Models\User::where('email', 'supervisor@sync.local')->first() ?? \App\Models\User::first())->id);
 
         return response()->json(['message' => 'Canal libre.']);
     }
@@ -41,7 +41,7 @@ class FloorController extends Controller
     public function heartbeat(Request $request, Channel $channel)
     {
         $locked = Channel::find($channel->id);
-        if ($locked && $locked->occupied_by === ($request->user() ?? \App\Models\User::first())->id) {
+        if ($locked && $locked->occupied_by === ($request->user() ?? \App\Models\User::where('email', 'supervisor@sync.local')->first() ?? \App\Models\User::first())->id) {
             $locked->update(['floor_expires_at' => now()->addSeconds(FloorControlService::FLOOR_TTL_SECONDS)]);
         }
 
