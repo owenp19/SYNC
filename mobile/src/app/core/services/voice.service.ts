@@ -74,7 +74,15 @@ export class VoiceService implements OnDestroy {
   }
 
   async disconnect() {
+    if (this.heartbeatTimer) { clearInterval(this.heartbeatTimer); this.heartbeatTimer = null; }
+    if (this.localTrack) {
+      try { await this.room.localParticipant.unpublishTrack(this.localTrack); } catch {}
+      this.localTrack.stop();
+      this.localTrack = null;
+    }
     await this.room.disconnect();
+    this.floorState$.next('free');
+    this.activeSpeaker$.next(null);
   }
 
   ngOnDestroy() { this.disconnect(); }

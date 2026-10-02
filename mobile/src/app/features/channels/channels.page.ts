@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonBadge, IonList } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonMenu, IonMenuButton, IonButtons } from '@ionic/angular';
 
 interface ChannelCard {
   id: number;
@@ -15,7 +15,7 @@ interface ChannelCard {
 @Component({
   selector: 'app-channels',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonBadge, IonList],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonMenu, IonMenuButton, IonButtons],
   templateUrl: './channels.page.html',
   styleUrls: ['./channels.page.scss']
 })

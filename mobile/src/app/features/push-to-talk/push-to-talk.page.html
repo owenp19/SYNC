@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="secondary">
-    <ion-title>Canal {{ channel?.name }}</ion-title>
+    <ion-title>{{ channel?.name }}</ion-title>
     <ion-buttons slot="end">
       <ion-badge [color]="(voice.floorState$ | async) === 'transmitting' ? 'danger' : 'success'">
         {{ (voice.floorState$ | async) === 'transmitting' ? 'OCUPADO' : 'LIBRE' }}

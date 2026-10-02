@@ -1,33 +1,65 @@
+<ion-menu contentId="main-content" side="start" menuId="main-menu">
+  <ion-header>
+    <ion-toolbar class="menu-toolbar">
+      <ion-title>SYNC</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="menu-content">
+    <nav class="menu-nav">
+      <a class="menu-item active" href="/channels">
+        <ion-icon name="grid-outline"></ion-icon>
+        <span>Canales</span>
+      </a>
+      <a class="menu-item" href="/channels">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span>Emergencias</span>
+      </a>
+      <a class="menu-item" href="/channels">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <span>Perfil</span>
+      </a>
+    </nav>
+  </ion-content>
+</ion-menu>
+
 <ion-header class="channels-header">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button>
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
+    </ion-buttons>
     <ion-title>SYNC · Canales</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="channels-page" fullscreen>
+<ion-content id="main-content" class="channels-page" fullscreen>
 
   <div class="hero">
-    <h1>Tus canales</h1>
-    <p>Selecciona un canal para comenzar a transmitir</p>
+    <p class="eyebrow">HOTEL &amp; STAFF</p>
+    <h1>Departamentos</h1>
+    <p class="subtitle">Elige un canal para empezar a transmitir al instante.</p>
   </div>
 
   <div class="channel-list">
-    <button class="channel-card" *ngFor="let c of channels" (click)="open(c)">
-      <div class="icon-wrap" [style.background]="c.color + '22'" [style.color]="c.color">
+    <button class="channel-card" *ngFor="let c of channels; let i = index" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
+      <div class="icon-wrap" [style.background]="c.color + '1F'" [style.color]="c.color">
         <ion-icon [name]="c.icon"></ion-icon>
       </div>
 
       <div class="channel-info">
         <div class="name-row">
           <strong>{{ c.name }}</strong>
-          <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.status === 'emergency'">
-            {{ statusLabel(c) }}
-          </span>
         </div>
         <small>{{ c.description }}</small>
+        <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.status === 'emergency'">
+          <span class="dot"></span>{{ statusLabel(c) }}
+        </span>
       </div>
 
-      <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+      <span class="chevron-wrap">
+        <ion-icon name="chevron-forward"></ion-icon>
+      </span>
     </button>
   </div>
 

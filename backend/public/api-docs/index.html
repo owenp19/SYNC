@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNC · API Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1220; --panel:#111A2E; --panel2:#0F172A; --line:#1E293B;
+    --text:#E2E8F0; --muted:#64748B; --teal:#14B8A6; --blue:#3B82F6;
+    --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --purple:#8B5CF6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;display:flex;min-height:100vh}
+
+  /* ===== Sidebar ===== */
+  aside{width:260px;position:fixed;inset:0 auto 0 0;background:var(--panel2);border-right:1px solid var(--line);padding:24px 18px;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+  .brand img{width:38px;height:38px;border-radius:10px}
+  .brand h1{font-family:'Oswald';font-weight:500;font-size:17px;letter-spacing:3px}
+  .brand small{display:block;color:var(--teal);font-size:9px;letter-spacing:2px;text-transform:uppercase}
+  nav a{display:block;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;padding:8px 10px;border-radius:8px;margin:2px 0}
+  nav a:hover{background:#1e293b;color:#fff}
+  .nav-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#334155;margin:18px 0 6px;padding:0 10px}
+  .badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px;vertical-align:middle}
+  .post{background:#14532d;color:#86efac} .get{background:#1e3a8a;color:#93c5fd}
+
+  /* ===== Main ===== */
+  main{margin-left:260px;padding:40px 48px;max-width:1000px}
+  header h2{font-family:'Oswald';font-size:34px;font-weight:500;letter-spacing:1px}
+  header p{color:var(--muted);margin:8px 0 28px;font-size:14px}
+  .server{display:inline-flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#7dd3fc;margin-bottom:36px}
+
+  section{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px}
+  .ep-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .method{font-family:'JetBrains Mono';font-weight:700;font-size:11px;padding:4px 10px;border-radius:8px}
+  .method.post{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+  .ep-head code{font-family:'JetBrains Mono';font-size:14px;color:#e2e8f0}
+  section p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
+  h4{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#475569;margin:16px 0 8px}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600}
+  td code{background:#1e293b;padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono';font-size:11.5px;color:#7dd3fc}
+
+  pre{background:#020617;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:'JetBrains Mono';font-size:12px;overflow-x:auto;color:#a5f3fc;position:relative}
+  pre .copy{position:absolute;top:8px;right:8px;background:#1e293b;border:none;color:#94a3b8;font-size:10px;padding:4px 8px;border-radius:6px;cursor:pointer}
+  .status{font-family:'JetBrains Mono';font-weight:700;font-size:11px;padding:2px 8px;border-radius:6px;margin-right:6px}
+  .s200{background:rgba(34,197,94,.15);color:#4ade80}
+  .s401,.s403{background:rgba(245,158,11,.15);color:#fbbf24}
+  .s409,.s422{background:rgba(239,68,68,.15);color:#f87171}
+
+  @media(max-width:800px){aside{display:none}main{margin-left:0;padding:24px}}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <img src="./sync-isotipo.png" alt="SYNC">
+    <div><h1>SYNC</h1><small>API Reference</small></div>
+  </div>
+  <nav>
+    <p class="nav-title">General</p>
+    <a href="#intro">Introducción</a>
+    <a href="#auth-section">Autenticación</a>
+    <p class="nav-title">Auth</p>
+    <a href="#login"><span class="badge post">POST</span>/auth/login</a>
+    <a href="#logout"><span class="badge post">POST</span>/auth/logout</a>
+    <p class="nav-title">Voice</p>
+    <a href="#token"><span class="badge post">POST</span>/voice/token</a>
+    <p class="nav-title">Floor Control</p>
+    <a href="#acquire"><span class="badge post">POST</span>/floor/acquire</a>
+    <a href="#release"><span class="badge post">POST</span>/floor/release</a>
+    <a href="#heartbeat"><span class="badge post">POST</span>/floor/heartbeat</a>
+  </nav>
+</aside>
+
+<main>
+  <header id="intro">
+    <h2>SYNC API</h2>
+    <p>Backend en Laravel 13 · Autenticación por token Bearer (Sanctum) · Control de piso de voz con heartbeat de 300s.</p>
+    <div class="server">🌐 http://localhost:8000/api</div>
+  </header>
+
+  <section id="auth-section">
+    <h4>Autenticación</h4>
+    <p>Obtén un token con <code>POST /api/auth/login</code> y envíalo en cada petición:</p>
+    <pre>Authorization: Bearer {token}
+<button class="copy" onclick="navigator.clipboard.writeText('Authorization: Bearer ')">copiar</button></pre>
+  </section>
+
+  <section id="login">
+    <div class="ep-head"><span class="method post">POST</span><code>/auth/login</code></div>
+    <p>Inicia sesión y devuelve un token Bearer junto con el usuario.</p>
+    <h4>Body</h4>
+    <table><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+      <tr><td><code>email</code></td><td>string (email)</td><td>Correo del usuario</td></tr>
+      <tr><td><code>password</code></td><td>string</td><td>Contraseña</td></tr></table>
+    <h4>Respuesta 200</h4>
+    <pre>{
+  "token": "1|abc123...",
+  "user": { "id": 1, "name": "Recepción", "email": "recepcion@hotel.com", "status": "available" }
+}</pre>
+    <h4>Errores</h4>
+    <p><span class="status s401">401</span> Credenciales inválidas · <span class="status s422">422</span> Datos inválidos</p>
+  </section>
+
+  <section id="logout">
+    <div class="ep-head"><span class="method post">POST</span><code>/auth/logout</code></div>
+    <p>Revoca el token de acceso actual. Requiere <code>Authorization: Bearer</code>.</p>
+    <h4>Respuesta 200</h4>
+    <pre>{ "message": "Sesión cerrada" }</pre>
+  </section>
+
+  <section id="token">
+    <div class="ep-head"><span class="method post">POST</span><code>/voice/token</code></div>
+    <p>Genera un JWT de LiveKit para unirse a la sala del canal indicado. Requiere permiso <code>can_listen</code> o <code>can_transmit</code>.</p>
+    <h4>Body</h4>
+    <table><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+      <tr><td><code>channel_id</code></td><td>integer</td><td>ID del canal</td></tr></table>
+    <h4>Respuesta 200</h4>
+    <pre>{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "url": "http://localhost:7880"
+}</pre>
+    <h4>Errores</h4>
+    <p><span class="status s401">401</span> Sin token · <span class="status s403">403</span> Sin acceso al canal · <span class="status s422">422</span> Datos inválidos</p>
+  </section>
+
+  <section id="acquire">
+    <div class="ep-head"><span class="method post">POST</span><code>/channels/{channel}/floor/acquire</code></div>
+    <p>Solicita el piso de voz del canal. Si está ocupado responde 409. El piso expira a los 300s sin heartbeat.</p>
+    <h4>Respuesta 200</h4>
+    <pre>{ "granted": true, "message": "Canal disponible. Puede transmitir." }</pre>
+    <h4>Error 409</h4>
+    <pre>{ "granted": false, "message": "Canal ocupado." }</pre>
+  </section>
+
+  <section id="release">
+    <div class="ep-head"><span class="method post">POST</span><code>/channels/{channel}/floor/release</code></div>
+    <p>Libera el canal si eres el ocupante actual.</p>
+    <h4>Respuesta 200</h4>
+    <pre>{ "message": "Canal libre." }</pre>
+  </section>
+
+  <section id="heartbeat">
+    <div class="ep-head"><span class="method post">POST</span><code>/channels/{channel}/floor/heartbeat</code></div>
+    <p>Extiende <code>floor_expires_at</code> en 300s mientras sigas ocupando el canal. Envíalo cada 60s.</p>
+    <h4>Respuesta 200</h4>
+    <pre>{ "message": "ok" }</pre>
+  </section>
+</main>
+
+</body>
+</html>

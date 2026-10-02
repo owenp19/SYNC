@@ -1,0 +1,280 @@
+openapi: 3.0.3
+info:
+  title: SYNC API
+  description: |
+    API de SYNC, la radio digital empresarial push-to-talk para hoteles y organizaciones.
+
+    ## Autenticación
+    1. Obtén un token con `POST /api/auth/login`.
+    2. Envía ese token en todas las demás peticiones:
+       `Authorization: Bearer {token}`
+
+    ## Piso de voz (Floor Control)
+    Solo puede transmitir un usuario por canal. El piso expira tras 300s sin heartbeat
+    (`floor_expires_at`). El cliente debe enviar un heartbeat cada 60 segundos
+    mientras mantenga presionado el botón PTT.
+  version: 1.0.0
+  contact:
+    name: SYNC Team
+servers:
+  - url: http://localhost:8000/api
+    description: Desarrollo local
+  - url: https://api.tudominio.com/api
+    description: Producción
+tags:
+  - name: Auth
+    description: Autenticación de usuarios (Laravel Sanctum)
+  - name: Voice
+    description: Tokens de conexión a LiveKit
+  - name: Floor
+    description: Control del piso de voz por canal
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      description: Valida las credenciales y devuelve un token Bearer junto con el usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              ejemplo:
+                value:
+                  email: recepcion@hotel.com
+                  password: secret
+      responses:
+        '200':
+          description: Sesión iniciada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenciales inválidas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Credenciales inválidas
+        '422':
+          description: Datos de entrada inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar sesión
+      description: Revoca el token de acceso actual del usuario.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /voice/token:
+    post:
+      tags: [Voice]
+      summary: Obtener token de LiveKit
+      description: Genera un JWT de LiveKit para unirse a la sala del canal indicado. Requiere permiso `can_listen` o `can_transmit` sobre el canal.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [channel_id]
+              properties:
+                channel_id:
+                  type: integer
+                  description: ID del canal.
+                  example: 1
+      responses:
+        '200':
+          description: Token creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Sin acceso al canal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '422':
+          description: Datos inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /channels/{channel}/floor/acquire:
+    post:
+      tags: [Floor]
+      summary: Solicitar el piso de voz
+      description: |
+        Intenta obtener el permiso de transmisión del canal. Si otro usuario lo tiene,
+        responde 409. El piso expira a los 300s si no se envía heartbeat.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '200':
+          description: Piso concedido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloorResponse'
+        '403':
+          description: No tiene permiso de transmisión.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '409':
+          description: Canal ocupado por otro usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /channels/{channel}/floor/release:
+    post:
+      tags: [Floor]
+      summary: Liberar el piso de voz
+      description: Libera el canal si el usuario que lo solicita es el ocupante actual.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '200':
+          description: Canal libre.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /channels/{channel}/floor/heartbeat:
+    post:
+      tags: [Floor]
+      summary: Renovar el piso de voz
+      description: Extiende `floor_expires_at` en 300s mientras el usuario siga ocupando el canal.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ChannelId'
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ChannelId:
+      name: channel
+      in: path
+      required: true
+      description: ID del canal.
+      schema:
+        type: integer
+      example: 1
+  responses:
+    Unauthorized:
+      description: Token ausente o inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token Bearer de Sanctum.
+        user:
+          $ref: '#/components/schemas/User'
+    VoiceTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT de LiveKit.
+        url:
+          type: string
+          description: URL del servidor LiveKit.
+    FloorResponse:
+      type: object
+      properties:
+        granted:
+          type: boolean
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        department_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [available, busy, offline, emergency]
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
