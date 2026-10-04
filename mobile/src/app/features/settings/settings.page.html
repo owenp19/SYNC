@@ -1,0 +1,29 @@
+<ion-header class="settings-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/channels" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Configuración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="settings-page" fullscreen>
+  <div class="card">
+    <ion-item lines="full">
+      <ion-label>Confirmación háptica</ion-label>
+      <ion-toggle slot="end" checked></ion-toggle>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-label>Sonido al transmitir</ion-label>
+      <ion-toggle slot="end" checked></ion-toggle>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-label>Mantener pantalla activa</ion-label>
+      <ion-toggle slot="end"></ion-toggle>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label>Dispositivo</ion-label>
+      <ion-note slot="end" color="medium">{{ deviceInfo }}</ion-note>
+    </ion-item>
+  </div>
+</ion-content>

@@ -1,0 +1,94 @@
+<ion-menu contentId="dash-content" side="start">
+  <ion-header>
+    <ion-toolbar class="menu-toolbar">
+      <img class="menu-logo" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="menu-content">
+    <nav class="menu-nav">
+      <a class="menu-item active" href="/admin"><ion-icon name="grid-outline"></ion-icon><span>Dashboard</span></a>
+      <a class="menu-item" href="/admin/assignments"><ion-icon name="people"></ion-icon><span>Asignaciones</span></a>
+      <a class="menu-item" href="/admin/manage"><ion-icon name="add-circle-outline"></ion-icon><span>Crear canal / depto</span></a>
+      <a class="menu-item" href="/settings"><ion-icon name="settings-outline"></ion-icon><span>Configuración</span></a>
+      <a class="menu-item" (click)="logout()"><ion-icon name="person-circle-outline"></ion-icon><span>Cerrar sesión</span></a>
+    </nav>
+  </ion-content>
+</ion-menu>
+
+<ion-header class="dash-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button><ion-icon name="menu-outline"></ion-icon></ion-menu-button>
+    </ion-buttons>
+    <div class="toolbar-brand">
+      <img src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content id="dash-content" class="dash-page" fullscreen>
+  <ng-container *ngIf="channels$ | async as channels">
+
+    <div class="hero">
+      <div>
+        <p class="eyebrow">PANEL ADMINISTRATIVO</p>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Conecta tu equipo. Todo en un solo canal.</p>
+      </div>
+      <div class="live-chip">
+        <span class="pulse"></span> EN VIVO
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat accent-teal">
+        <ion-icon name="grid-outline"></ion-icon>
+        <strong>{{ total(channels) }}</strong>
+        <span>Canales</span>
+      </div>
+      <div class="stat accent-danger">
+        <ion-icon name="mic"></ion-icon>
+        <strong>{{ busy(channels) }}</strong>
+        <span>En vivo</span>
+      </div>
+      <div class="stat accent-warning">
+        <ion-icon name="warning"></ion-icon>
+        <strong>{{ emergency(channels) }}</strong>
+        <span>Emergencia</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Estado global</h3>
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div class="card">
+        <h3>Tipos de eventos</h3>
+        <canvas id="eventsChart"></canvas>
+      </div>
+    </div>
+
+    <h2 class="section-title">Estado por canal</h2>
+
+    <div class="channel-row" *ngFor="let c of channels" [class.busy]="c.status === 'busy'">
+      <span class="dot" [class.busy]="c.status === 'busy'"></span>
+      <div class="info">
+        <strong>{{ c.name }}</strong>
+        <small>{{ c.status === 'busy' ? ('Ocupado por ' + (c.occupier_name || '…')) : 'Libre' }}</small>
+      </div>
+      <span class="badge" [class.busy]="c.status === 'busy'">{{ c.status === 'busy' ? 'EN VIVO' : 'LIBRE' }}</span>
+    </div>
+
+    <h2 class="section-title">Historial</h2>
+
+    <div class="timeline">
+      <div class="event-row" *ngFor="let e of events$ | async">
+        <ion-icon name="pulse-outline"></ion-icon>
+        <span class="msg"><strong>{{ e.user_name }}</strong> · {{ e.event }} en <strong>{{ e.channel_name }}</strong></span>
+        <small>{{ e.created_at | date:'shortTime' }}</small>
+      </div>
+    </div>
+
+  </ng-container>
+</ion-content>

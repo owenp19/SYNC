@@ -1,28 +1,35 @@
 <ion-content class="login-page" fullscreen>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
   <div class="screen-container">
 
     <div class="brand">
-      <img src="assets/branding/logos/sync_logo_horizontal_primary.png" alt="SYNC">
-      <h1>SYNC</h1>
-      <p>RADIO DIGITAL EMPRESARIAL</p>
+      <img src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+      <p class="tag">RADIO DIGITAL EMPRESARIAL · PREMIUM</p>
     </div>
 
     <div class="card">
+      <p class="eyebrow">ACCESO ADMINISTRATIVO</p>
       <h2>Iniciar sesión</h2>
 
-      <ion-item lines="none">
+      <ion-item lines="none" class="field">
+        <ion-icon slot="start" name="mail-outline"></ion-icon>
         <ion-input label="Correo" labelPlacement="floating" [(ngModel)]="email" type="email"></ion-input>
       </ion-item>
 
-      <ion-item lines="none">
+      <ion-item lines="none" class="field">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
         <ion-input label="Contraseña" labelPlacement="floating" [(ngModel)]="password" type="password"></ion-input>
       </ion-item>
 
       <ion-button expand="block" class="login-button" (click)="onLogin()">
+        <ion-icon slot="start" name="arrow-forward-outline"></ion-icon>
         Ingresar
       </ion-button>
+
+      <p class="footnote">SYNC © 2026 · Seguro · Confiable · Global</p>
     </div>
 
   </div>
 </ion-content>
-

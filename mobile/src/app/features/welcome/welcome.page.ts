@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular';
@@ -11,16 +11,15 @@ import { IonContent, IonIcon } from '@ionic/angular';
   styleUrls: ['./welcome.page.scss'],
 })
 export class WelcomePage implements OnInit, OnDestroy {
-  activeDot = 0;
+  activeDot = signal(0);
   private dotTimer: any;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // sincroniza dots con el carrusel (ciclo de 15s / 4 slides ≈ 3.75s)
     this.dotTimer = setInterval(() => {
-      this.activeDot = (this.activeDot + 1) % 3;
-    }, 3750);
+      this.activeDot.update(d => (d + 1) % 3);
+    }, 4000);
   }
 
   ngOnDestroy() {
@@ -28,9 +27,11 @@ export class WelcomePage implements OnInit, OnDestroy {
   }
 
   startApp() {
+    // Evita el aviso de aria-hidden: quitar el foco del botón antes de navegar
+    (document.activeElement as HTMLElement | null)?.blur();
     const page = document.querySelector('.welcome-page');
     if (page) page.classList.add('page-exit');
-    setTimeout(() => this.router.navigate(['/channels']), 350);
+    setTimeout(() => this.router.navigate(['/choose']), 350);
   }
 }
 

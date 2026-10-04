@@ -1,7 +1,7 @@
 <ion-menu contentId="main-content" side="start" menuId="main-menu">
   <ion-header>
     <ion-toolbar class="menu-toolbar">
-      <ion-title>SYNC</ion-title>
+      <img class="menu-logo" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
     </ion-toolbar>
   </ion-header>
   <ion-content class="menu-content">
@@ -10,13 +10,15 @@
         <ion-icon name="grid-outline"></ion-icon>
         <span>Canales</span>
       </a>
-      <a class="menu-item" href="/channels">
+      <a class="menu-item disabled">
         <ion-icon name="warning-outline"></ion-icon>
         <span>Emergencias</span>
+        <small class="soon">Pronto</small>
       </a>
-      <a class="menu-item" href="/channels">
+      <a class="menu-item disabled">
         <ion-icon name="person-circle-outline"></ion-icon>
         <span>Perfil</span>
+        <small class="soon">Pronto</small>
       </a>
     </nav>
   </ion-content>
@@ -29,7 +31,14 @@
         <ion-icon name="menu-outline"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
-    <ion-title>SYNC · Canales</ion-title>
+    <div class="toolbar-brand">
+      <img src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+    </div>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="live-pill">
+        <span class="live-dot"></span> LIVE
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -40,13 +49,31 @@
   </ion-refresher>
 
   <div class="hero">
-    <p class="eyebrow">HOTEL &amp; STAFF</p>
-    <h1>Departamentos</h1>
-    <p class="subtitle">Elige un canal para empezar a transmitir al instante.</p>
+    <p class="eyebrow">HOTEL &amp; STAFF · OPERACIONES</p>
+    <h1>Canales</h1>
+    <p class="subtitle">Selecciona un departamento para entrar al canal de voz.</p>
+
+    <label class="dept">
+      <span>Soy de</span>
+      <select (change)="onDeptChange($event)">
+        <option *ngFor="let d of departments" [value]="d" [selected]="d === department">{{ d }}</option>
+      </select>
+    </label>
   </div>
 
-  <div class="channel-list">
-    <button class="channel-card" *ngFor="let c of channels; let i = index" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
+  <div class="alert" *ngIf="loadError$ | async as loadError">
+    <ion-icon name="warning-outline"></ion-icon>
+    <span>{{ loadError }}</span>
+  </div>
+
+  <ng-container *ngIf="channels$ | async as channels">
+    <div class="empty" *ngIf="channels.length === 0 && !(loadError$ | async)">
+      <ion-icon name="wifi-outline"></ion-icon>
+      <p>Cargando canales…</p>
+    </div>
+
+    <div class="channel-list">
+      <button class="channel-card" *ngFor="let c of channels; let i = index" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
       <div class="icon-wrap" [style.background]="c.color + '1F'" [style.color]="c.color">
         <ion-icon [name]="c.icon"></ion-icon>
       </div>
@@ -66,6 +93,7 @@
         <ion-icon name="chevron-forward"></ion-icon>
       </span>
     </button>
-  </div>
+    </div>
+  </ng-container>
 
 </ion-content>

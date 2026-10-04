@@ -1,0 +1,62 @@
+<ion-header class="assign-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin" text=""></ion-back-button>
+    </ion-buttons>
+    <img class="brand-img" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="assign-page" fullscreen>
+  <div class="hero">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Asignaciones</h1>
+    <p class="subtitle">Define quién pertenece a cada departamento.</p>
+  </div>
+
+  <div class="hint">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Selecciona un departamento en cada fila para asignar esa persona. El cambio se guarda al instante en la base de datos.</span>
+  </div>
+
+  <div class="card create-card">
+    <h3>Nueva persona</h3>
+    <ion-item lines="none" class="field">
+      <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="newName" placeholder="Ej. María López"></ion-input>
+    </ion-item>
+    <ion-item lines="none" class="field">
+      <ion-input label="Correo" labelPlacement="floating" [(ngModel)]="newEmail" type="email" placeholder="maria@sync.local"></ion-input>
+    </ion-item>
+    <ion-item lines="none" class="field">
+      <ion-label>Departamento</ion-label>
+      <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
+        <ion-select-option [value]="null">Sin depto</ion-select-option>
+        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-button expand="block" class="cta" (click)="createUser()">
+      <ion-icon slot="start" name="person-add-outline"></ion-icon>
+      Agregar persona
+    </ion-button>
+    <p class="note">La contraseña inicial será 1234567. Assignable después desde la lista.</p>
+  </div>
+
+  <div class="user-row" *ngFor="let u of users()">
+    <ion-icon name="person-circle-outline"></ion-icon>
+    <div class="info">
+      <strong>{{ u.name }}</strong>
+      <small>{{ u.email }}</small>
+    </div>
+    <ion-item lines="none" class="dept-select">
+      <ion-select [value]="u.department_id" placeholder="Depto" interface="popover" (ionChange)="changeDepartment(u, $event)">
+        <ion-select-option [value]="null">Sin depto</ion-select-option>
+        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </div>
+
+  <div class="empty" *ngIf="users().length === 0">
+    <ion-icon name="people-outline"></ion-icon>
+    <p>Cargando usuarios…</p>
+  </div>
+</ion-content>

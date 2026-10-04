@@ -3,7 +3,9 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/channels" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>SYNC · Canal</ion-title>
+    <ion-title>
+      <img class="ptt-logo" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+    </ion-title>
     <ion-buttons slot="end">
       <span class="header-dot" [class.live]="(voice.floorState$ | async) === 'transmitting'"></span>
     </ion-buttons>

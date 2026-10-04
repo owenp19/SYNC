@@ -1,19 +1,21 @@
 :root {
-  --sync-primary: #1F4E79;
+  /* Teoría del color: base azul-marino monocromática (#0B1E33) +
+     azul primario (#2D6BFF) y su complementario cálido (#FF8A3D). */
+  --sync-primary: #2D6BFF;
   --sync-primary-contrast: #ffffff;
-  --sync-secondary: #0F2A44;
-  --sync-accent: #F97316;
+  --sync-secondary: #0B1E33;
+  --sync-accent: #FF8A3D;
   --sync-accent-contrast: #ffffff;
   --sync-teal: #14B8A6;
   --sync-success: #10B981;
   --sync-warning: #F59E0B;
   --sync-danger: #EF4444;
-  --sync-dark: #0F172A;
+  --sync-dark: #050B14;
   --sync-light: #F8FAFC;
   --sync-background: #F1F5F9;
   --sync-surface: #FFFFFF;
   --sync-text-primary: #0F172A;
-  --sync-text-secondary: #64748B;
+  --sync-text-secondary: #8FA3BD;
 }
 
 :root {
@@ -31,4 +33,3 @@
   --ion-toolbar-color: #ffffff;
   --ion-item-background: var(--sync-surface);
 }
-

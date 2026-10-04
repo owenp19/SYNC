@@ -1,0 +1,26 @@
+<ion-content class="choose-page" fullscreen>
+  <div class="screen">
+    <img class="logo" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+
+    <h1>Bienvenido</h1>
+    <p class="subtitle">¿Qué quieres hacer hoy?</p>
+
+    <button class="option primary" (click)="goChannels()">
+      <ion-icon name="mic"></ion-icon>
+      <div>
+        <strong>Canales</strong>
+        <small>Comunicación por voz, push-to-talk</small>
+      </div>
+      <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+    </button>
+
+    <button class="option" (click)="goAdmin()">
+      <ion-icon name="grid-outline"></ion-icon>
+      <div>
+        <strong>Dashboard Admin</strong>
+        <small>Métricas, asignaciones y gestión</small>
+      </div>
+      <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+    </button>
+  </div>
+</ion-content>

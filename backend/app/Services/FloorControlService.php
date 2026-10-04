@@ -35,10 +35,10 @@ class FloorControlService
                 'floor_expires_at' => now()->addSeconds(self::FLOOR_TTL_SECONDS),
             ]);
 
-            CommunicationHistory::updateOrCreate(
-                ['user_id' => $userId, 'channel_id' => $channel->id, 'ended_at' => null],
-                ['started_at' => now()]
-            );
+            // Si quedó una sesión abierta (app murió sin release), ciérrala antes de abrir una nueva.
+            CommunicationHistory::where('user_id', $userId)->where('channel_id', $channel->id)
+                ->whereNull('ended_at')->update(['ended_at' => now()]);
+            CommunicationHistory::create(['user_id' => $userId, 'channel_id' => $channel->id, 'started_at' => now()]);
             AudioEvent::create(['user_id' => $userId, 'channel_id' => $channel->id, 'event' => 'floor_acquired']);
 
             return true;

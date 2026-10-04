@@ -1,0 +1,29 @@
+.settings-page {
+  --background: linear-gradient(180deg, #050B14 0%, #0B1E33 100%);
+}
+
+.settings-header ion-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-color: transparent;
+}
+
+.settings-header ion-title {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 15px;
+}
+
+.card {
+  margin: 24px 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+ion-item {
+  --background: transparent;
+  --color: #e2e8f0;
+}

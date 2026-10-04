@@ -16,6 +16,7 @@ export interface ChannelDto {
 @Injectable({ providedIn: 'root' })
 export class ChannelsService {
   channels$ = new BehaviorSubject<ChannelDto[]>([]);
+  loadError$ = new BehaviorSubject<string | null>(null);
   private timer: any;
 
   constructor(private http: HttpClient) {}
@@ -33,8 +34,14 @@ export class ChannelsService {
 
   refresh() {
     this.http.get<ChannelDto[]>(`${environment.apiUrl}/channels`).subscribe({
-      next: (channels) => this.channels$.next(channels),
-      error: () => {},
+      next: (channels) => {
+        this.loadError$.next(null);
+        this.channels$.next(channels);
+      },
+      error: (err) => {
+        console.error('Error cargando canales', err);
+        this.loadError$.next('No se pudo cargar la lista de canales. Verifica que el backend esté activo.');
+      },
     });
   }
 }

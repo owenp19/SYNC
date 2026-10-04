@@ -1,14 +1,16 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
-import { Room, RoomEvent, Track, LocalAudioTrack, createLocalAudioTrack } from 'livekit-client';
+import { Room, RoomEvent, Track, LocalAudioTrack, createLocalAudioTrack, ExternalE2EEKeyProvider, RoomOptions } from 'livekit-client';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
+// Worker local que importa el worker E2EE oficial de livekit-client
+// (Angular esbuild no resuelve el sufijo ?worker de Vite).
 
 export type FloorState = 'free' | 'requesting' | 'transmitting' | 'denied';
 
 @Injectable({ providedIn: 'root' })
 export class VoiceService implements OnDestroy {
-  private room = new Room();
+  private room: Room | null = null;
   private localTrack: LocalAudioTrack | null = null;
   private remoteAudioEls: HTMLAudioElement[] = [];
 
@@ -16,10 +18,12 @@ export class VoiceService implements OnDestroy {
   activeSpeaker$ = new BehaviorSubject<string | null>(null);
   connected$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClient) {
-    this.room.on(RoomEvent.Connected, () => this.connected$.next(true));
-    this.room.on(RoomEvent.Disconnected, () => { this.connected$.next(false); this.floorState$.next('free'); });
-    this.room.on(RoomEvent.TrackSubscribed, (_t, _pub, participant) => {
+  constructor(private http: HttpClient) {}
+
+  private bindRoomEvents(room: Room) {
+    room.on(RoomEvent.Connected, () => this.connected$.next(true));
+    room.on(RoomEvent.Disconnected, () => { this.connected$.next(false); this.floorState$.next('free'); });
+    room.on(RoomEvent.TrackSubscribed, (_t, _pub, participant) => {
       if (_t.kind === Track.Kind.Audio) {
         this.activeSpeaker$.next(participant.identity);
         // livekit-client NO reproduce audio remoto por defecto: hay que adjuntar el track al DOM
@@ -29,21 +33,40 @@ export class VoiceService implements OnDestroy {
         document.body.appendChild(el);
       }
     });
-    this.room.on(RoomEvent.TrackUnsubscribed, (t) => {
+    room.on(RoomEvent.TrackUnsubscribed, (t) => {
       this.activeSpeaker$.next(null);
       (t as any).detach()?.forEach?.((el: HTMLElement) => el.remove());
     });
   }
 
   async connect(channelId: number) {
-    if (this.connected$.value) {
+    if (this.connected$.value || this.room) {
       await this.disconnect(); // siempre salimos de la sala anterior antes de entrar a otra
     }
     const guestId = this.getGuestId();
-    const { token } = await firstValueFrom(
-      this.http.post<{ token: string; url: string }>(environment.livekitTokenEndpoint, { channel_id: channelId, guest_id: guestId })
+    const department = this.getDepartment();
+    const res = await firstValueFrom(
+      this.http.post<{ token: string; url: string; e2ee_key?: string; user_name?: string }>(
+        environment.livekitTokenEndpoint,
+        { channel_id: channelId, guest_id: guestId, department }
+      )
     );
-    await this.room.connect(environment.livekitUrl, token);
+
+    const opts: RoomOptions = {};
+    if (res.e2ee_key) {
+      // Cifrado extremo a extremo: solo miembros del canal descifran el audio.
+      const keyProvider = new ExternalE2EEKeyProvider();
+      await keyProvider.setKey(res.e2ee_key);
+      opts.e2ee = {
+        keyProvider,
+        worker: new Worker(new URL('./e2ee-worker.ts', import.meta.url), { type: 'module' }),
+      };
+    }
+
+    const room = new Room(opts);
+    this.bindRoomEvents(room);
+    this.room = room;
+    await room.connect(environment.livekitUrl, res.token);
   }
 
   private getGuestId(): string {
@@ -55,6 +78,10 @@ export class VoiceService implements OnDestroy {
     return id;
   }
 
+  private getDepartment(): string {
+    return localStorage.getItem('sync_department') ?? 'General';
+  }
+
   /** PTT presionado: solicita el piso y publica el micrófono. */
   private heartbeatTimer: any = null;
 
@@ -63,11 +90,11 @@ export class VoiceService implements OnDestroy {
     try {
       this.localTrack = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
       // Floor control: el backend autoriza (LiveKit egress / data message al servidor)
-      await firstValueFrom(this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/acquire`, {}));
-      await this.room.localParticipant.publishTrack(this.localTrack);
+      await firstValueFrom(this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/acquire`, { department: this.getDepartment() }));
+      await this.room?.localParticipant.publishTrack(this.localTrack);
       this.floorState$.next('transmitting');
       this.heartbeatTimer = setInterval(() => {
-        this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/heartbeat`, {}).subscribe();
+        this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/heartbeat`, { department: this.getDepartment() }).subscribe();
       }, 60_000);
     } catch {
       this.floorState$.next('denied');
@@ -80,30 +107,31 @@ export class VoiceService implements OnDestroy {
   async stopTransmit(channelId: number) {
     if (this.heartbeatTimer) { clearInterval(this.heartbeatTimer); this.heartbeatTimer = null; }
     if (this.localTrack) {
-      await this.room.localParticipant.unpublishTrack(this.localTrack);
+      await this.room?.localParticipant.unpublishTrack(this.localTrack);
       this.localTrack.stop();
       this.localTrack = null;
     }
-    try { await firstValueFrom(this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/release`, {})); } catch {}
+    try { await firstValueFrom(this.http.post(`${environment.apiUrl}/channels/${channelId}/floor/release`, { department: this.getDepartment() })); } catch {}
     this.floorState$.next('free');
   }
 
   async disconnect() {
     if (this.heartbeatTimer) { clearInterval(this.heartbeatTimer); this.heartbeatTimer = null; }
     if (this.localTrack) {
-      try { await this.room.localParticipant.unpublishTrack(this.localTrack); } catch {}
+      try { await this.room?.localParticipant.unpublishTrack(this.localTrack); } catch {}
       this.localTrack.stop();
       this.localTrack = null;
     }
-    await this.room.disconnect();
+    if (this.room) {
+      await this.room.disconnect();
+      this.room = null;
+    }
     this.remoteAudioEls.forEach(el => el.remove());
     this.remoteAudioEls = [];
     this.floorState$.next('free');
     this.activeSpeaker$.next(null);
+    this.connected$.next(false);
   }
 
   ngOnDestroy() { this.disconnect(); }
 }
-
-
-

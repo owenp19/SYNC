@@ -8,7 +8,8 @@ import { User } from '../models';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private tokenKey = 'sync_token';
-  currentUser$ = new BehaviorSubject<User | null>(null);
+  private userKey = 'sync_user';
+  currentUser$ = new BehaviorSubject<User | null>(this.loadUser());
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -16,6 +17,7 @@ export class AuthService {
     return this.http.post<{ token: string; user: User }>(`${environment.apiUrl}/auth/login`, { email, password }).pipe(
       tap(res => {
         localStorage.setItem(this.tokenKey, res.token);
+        localStorage.setItem(this.userKey, JSON.stringify(res.user));
         this.currentUser$.next(res.user);
       })
     );
@@ -23,8 +25,15 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
     this.currentUser$.next(null);
     this.router.navigateByUrl('/auth/login');
+  }
+
+  private loadUser(): User | null {
+    const raw = localStorage.getItem(this.userKey);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
   }
 
   get token(): string | null {

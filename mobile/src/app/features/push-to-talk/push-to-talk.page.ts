@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon, ToastController } from '@ionic/angular';
 import { VoiceService } from '@core/services/voice.service';
+import { NativeService } from '@core/services/native.service';
 import { Channel } from '@core/models';
 
 @Component({
@@ -19,10 +20,11 @@ export class PushToTalkPage implements OnInit, OnDestroy {
   channel: Channel | null = null;
   private channelId = 0;
 
-  constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController, private http: HttpClient) {}
+  constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController, private http: HttpClient, private native: NativeService) {}
 
   async ngOnInit() {
     this.channelId = Number(this.route.snapshot.paramMap.get('id'));
+    await this.native.lockPortrait();
     try {
       const c = await firstValueFrom(this.http.get<Channel>(`${environment.apiUrl}/channels/${this.channelId}`));
       this.channel = c;
@@ -38,11 +40,13 @@ export class PushToTalkPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.native.unlockOrientation();
+    this.native.keepScreenOn(false);
     this.voice.disconnect();
   }
 
-  async onPttDown() { await this.voice.startTransmit(this.channelId); }
-  async onPttUp() { await this.voice.stopTransmit(this.channelId); }
+  async onPttDown() { await this.native.haptic('heavy'); await this.native.keepScreenOn(true); await this.voice.startTransmit(this.channelId); }
+  async onPttUp() { await this.native.haptic('light'); await this.native.keepScreenOn(false); await this.voice.stopTransmit(this.channelId); }
 }
 
 

@@ -1,18 +1,74 @@
 .channels-page {
-  --background: linear-gradient(180deg, #050e1a 0%, #0F2A44 100%);
+  --background: linear-gradient(180deg, #050B14 0%, #0B1E33 100%);
 }
 
 .channels-header ion-toolbar {
-  --background: transparent;
+  --background: rgba(5, 11, 20, 0.85);
   --color: #fff;
-  --border-color: transparent;
+  --border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  --min-height: 60px;
+}
+
+.toolbar-brand img {
+  height: 30px;
+  display: block;
+  margin: 0 auto;
+}
+
+.toolbar-brand {
+  display: flex;
+  justify-content: center;
+}
+
+.live-pill {
+  --color: #FF5A5F;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF5A5F;
+  animation: pulse-live 1.2s ease-in-out infinite;
 }
 
 .channels-header ion-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   letter-spacing: 3px;
   text-transform: uppercase;
   font-size: 15px;
+}
+
+.alert {
+  margin: 0 18px 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #FCA5A5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.empty {
+  padding: 40px 18px;
+  text-align: center;
+  color: var(--sync-text-secondary);
+  ion-icon { font-size: 40px; color: var(--sync-teal); }
+}
+
+.menu-logo {
+  height: 28px;
 }
 
 .hero {
@@ -21,7 +77,7 @@
 
   .eyebrow {
     margin: 0 0 6px;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 3px;
@@ -29,8 +85,8 @@
   }
 
   h1 {
-    font-family: 'Oswald', sans-serif;
-    font-size: 34px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 36px;
     font-weight: 600;
     margin: 0;
     letter-spacing: 0.5px;
@@ -38,9 +94,32 @@
 
   .subtitle {
     color: var(--sync-text-secondary);
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
     margin: 6px 0 0;
+  }
+}
+
+.dept {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 13px;
+
+  select {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    option { color: #0f172a; }
   }
 }
 
@@ -85,6 +164,21 @@
   place-items: center;
   font-size: 24px;
   flex-shrink: 0;
+  animation: icon-float 3s ease-in-out infinite;
+
+  ion-icon {
+    animation: icon-pulse 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes icon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: .85; }
 }
 
 .channel-info {
@@ -100,7 +194,7 @@
 
   strong {
     color: #fff;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 500;
     font-size: 18px;
     letter-spacing: 0.5px;
@@ -108,7 +202,7 @@
 
   small {
     color: var(--sync-text-secondary);
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
     display: block;
     margin-top: 4px;
@@ -128,7 +222,7 @@
   gap: 5px;
   width: fit-content;
   font-size: 10px;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -173,18 +267,18 @@
 
 /* ===== Menú hamburguesa ===== */
 .menu-toolbar {
-  --background: #071525;
+  --background: #050B14;
   --color: #fff;
 }
 
 .menu-toolbar ion-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   letter-spacing: 3px;
   font-size: 15px;
 }
 
 .menu-content {
-  --background: #0B1E33;
+  --background: #081829;
 
   .menu-nav {
     padding: 20px 14px;
@@ -201,7 +295,7 @@
     border-radius: 14px;
     color: #cbd5e1;
     text-decoration: none;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 500;
 
@@ -210,6 +304,19 @@
     &.active {
       background: rgba(20, 184, 166, 0.12);
       color: #fff;
+    }
+
+    &.disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .soon {
+      margin-left: auto;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--sync-accent);
     }
   }
 }

@@ -84,7 +84,7 @@ npx cap open android
 ## Configuración WebRTC / LiveKit
 
 - LiveKit corre en `ws://localhost:7880` con clave `devkey`/`secret` (ver `infra/livekit/livekit.yaml`).
-- El backend genera el token JWT: `POST /api/voice/token { channel_id, user_id }`.
+- El backend genera el token JWT: `POST /api/voice/token { channel_id, guest_id }`.
 - La app se conecta con `livekit-client` y publica el micrófono solo al adquirir el piso.
 
 ## Floor Control (turno de voz)
@@ -112,8 +112,8 @@ Solo un usuario puede transmitir a la vez; el resto recibe el audio vía SFU.
 ## Pantallas
 
 - **Welcome** (`/welcome`, ruta por defecto) — logo, hero con pill, feature cards, carrusel de fondos automático, dots sincronizados, animación entrada/salida.
-- **Login** (`/auth/login`) — card premium con toasts de error globales.
-- **Channels** (`/channels`) — lista de canales (requiere auth).
+- **Login** (`/auth/login`) — solo para la parte administrativa.
+- **Channels** (`/channels`) — lista de canales (acceso libre para usuarios finales).
 - **Push-To-Talk** (`/talk/:id`) — PTT con floor control, heartbeat y audio WebRTC (LiveKit).
 - **Preloader global** — spinner con logo centrado durante la carga inicial.
 

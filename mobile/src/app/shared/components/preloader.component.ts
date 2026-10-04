@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="preloader">
-      <img src="assets/branding/logos/sync_logo_horizontal_primary.png" alt="SYNC">
+      <img src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
       <div class="pulse-dot"></div>
       <p>Cargando SYNC...</p>
     </div>
@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
   styles: [`
     .preloader {
       position: fixed; inset: 0; z-index: 9999;
-      background: #071525;
+      background: #050B14;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
       animation: fade-in .25s ease-out;
     }
@@ -25,7 +25,7 @@ import { CommonModule } from '@angular/common';
       background: #14b8a6;
       animation: pulse 1s ease-in-out infinite;
     }
-    p { color: #94a3b8; font-family: 'Roboto', sans-serif; font-size: 14px; letter-spacing: 1px; }
+    p { color: #94a3b8; font-family: 'Inter', sans-serif; font-size: 14px; letter-spacing: 1px; }
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.8); opacity: .5; }

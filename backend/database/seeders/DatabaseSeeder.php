@@ -30,6 +30,18 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Supervisor', 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
         );
 
+        // Acceso al panel de administración (/admin y /settings)
+        $admin = User::firstOrCreate(
+            ['email' => 'owen@sync.com'],
+            ['name' => 'Owen', 'password' => \Illuminate\Support\Facades\Hash::make('1234567'), 'status' => 'available']
+        );
+        foreach (\App\Models\Channel::all() as $channel) {
+            \App\Models\ChannelPermission::firstOrCreate(
+                ['user_id' => $admin->id, 'channel_id' => $channel->id],
+                ['can_listen' => true, 'can_transmit' => true]
+            );
+        }
+
         foreach (\App\Models\Channel::all() as $channel) {
             \App\Models\ChannelPermission::firstOrCreate(
                 ['user_id' => $supervisor->id, 'channel_id' => $channel->id],
@@ -52,8 +64,8 @@ class DatabaseSeeder extends Seeder
                 ['email' => $email],
                 ['name' => $name, 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
             );
-            $channel = \App\Models\Channel::where('name', str_replace('Equipo ', '', $name) === 'Ama de Llaves' ? 'Ama de llaves' : str_replace('Equipo ', '', $name))->first();
-            if ($channel) {
+            // Permisos de todos los canales: escuchar y transmitir (privacidad por canal = membresía del canal).
+            foreach (\App\Models\Channel::all() as $channel) {
                 \App\Models\ChannelPermission::firstOrCreate(
                     ['user_id' => $u->id, 'channel_id' => $channel->id],
                     ['can_listen' => true, 'can_transmit' => true]
