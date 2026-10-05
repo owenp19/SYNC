@@ -18,7 +18,8 @@ export class AssignmentsPage implements OnInit {
   departments = signal<any[]>([]);
 
   newName = '';
-  newEmail = '';
+  newCode = '';
+  newPin = '';
   newDeptId: any = null;
 
   constructor(private http: HttpClient, private toast: ToastController) {}
@@ -33,17 +34,17 @@ export class AssignmentsPage implements OnInit {
   }
 
   async createUser() {
-    if (!this.newName.trim() || !this.newEmail.trim()) {
-      const t = await this.toast.create({ message: 'Completa nombre y correo', duration: 2500, color: 'warning', position: 'bottom' });
+    if (!this.newName.trim() || !this.newCode.trim() || !this.newPin.trim()) {
+      const t = await this.toast.create({ message: 'Completa nombre, código y PIN', duration: 2500, color: 'warning', position: 'bottom' });
       await t.present();
       return;
     }
     const deptId = this.newDeptId === '' || this.newDeptId === null ? null : Number(this.newDeptId);
-    this.http.post(`${environment.apiUrl}/admin/users`, { name: this.newName.trim(), email: this.newEmail.trim(), department_id: deptId }).subscribe({
+    this.http.post(`${environment.apiUrl}/admin/users`, { name: this.newName.trim(), employee_code: this.newCode.trim(), pin: this.newPin.trim(), department_id: deptId }).subscribe({
       next: async () => {
-        const t = await this.toast.create({ message: 'Persona agregada', duration: 2500, color: 'success', position: 'bottom' });
+        const t = await this.toast.create({ message: 'Empleado agregado', duration: 2500, color: 'success', position: 'bottom' });
         await t.present();
-        this.newName = ''; this.newEmail = ''; this.newDeptId = null;
+        this.newName = ''; this.newCode = ''; this.newPin = ''; this.newDeptId = null;
         this.load();
       },
       error: async (e) => {

@@ -9,15 +9,48 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    /**
+     * Login de empleado: employee_code + PIN.
+     * El departamento y rol siempre salen del usuario autenticado, nunca del cliente.
+     */
     public function login(Request $request)
     {
         $data = $request->validate(['email' => 'required|email', 'password' => 'required']);
         $user = User::where('email', $data['email'])->first();
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+
+        if (! $user || ! Hash::check($data['password'], $user->password) || $user->role !== 'admin') {
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
-        return response()->json(['token' => $user->createToken('sync')->plainTextToken, 'user' => $user]);
+        if (! $user->active) {
+            return response()->json(['message' => 'Usuario desactivado'], 403);
+        }
+
+        return response()->json([
+            'token' => $user->createToken('sync')->plainTextToken,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'employee_code' => $user->employee_code,
+                'department' => $user->department?->name,
+                'department_id' => $user->department_id,
+                'role' => $user->role,
+            ],
+        ]);
+    }
+
+    public function me(Request $request)
+    {
+        $user = $request->user()->load('department');
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'employee_code' => $user->employee_code,
+            'department' => $user->department?->name,
+            'department_id' => $user->department_id,
+            'role' => $user->role,
+        ]);
     }
 
     public function logout(Request $request)

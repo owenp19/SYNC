@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AudioEvent extends Model
 {
-    protected $fillable = ['user_id', 'channel_id', 'event', 'metadata'];
+    protected $fillable = ['user_id', 'device_id', 'channel_id', 'event', 'metadata'];
 
     protected $casts = ['metadata' => 'array'];
 

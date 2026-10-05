@@ -4,74 +4,63 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Channel;
-use App\Models\ChannelPermission;
+use App\Services\ChannelAccessService;
 use App\Services\FloorControlService;
+use App\Services\LiveKitPermissionService;
 use Illuminate\Http\Request;
 
 class FloorController extends Controller
 {
-    public function __construct(private FloorControlService $floor) {}
-
-    /** Usuario efectivo: login real → departamento elegido en el dispositivo → supervisor. */
-    private function resolveUser(Request $request): ?\App\Models\User
-    {
-        if ($request->user()) return $request->user();
-        $department = $request->input('department');
-        if ($department) {
-            $slug = \Illuminate\Support\Str::slug($department) . '@sync.local';
-            $u = \App\Models\User::where('email', $slug)->first()
-                ?? \App\Models\User::where('name', 'like', "%{$department}%")->first();
-            if ($u) return $u;
-        }
-
-        return \App\Models\User::where('email', 'supervisor@sync.local')->first() ?? \App\Models\User::first();
-    }
+    public function __construct(
+        private FloorControlService $floor,
+        private LiveKitPermissionService $livekit,
+        private ChannelAccessService $access,
+    ) {}
 
     public function acquire(Request $request, Channel $channel)
     {
-        $user = $this->resolveUser($request);
-        if (! $user) {
-            return response()->json(['message' => 'No hay usuarios configurados.'], 503);
-        }
+        $device = $request->user();
 
-        $permission = ChannelPermission::where('user_id', $user->id)
-            ->where('channel_id', $channel->id)->first();
-
-        if (! $permission || ! $permission->can_transmit) {
+        if (! $this->access->canTransmit($device, $channel->id)) {
             return response()->json(['message' => 'No tienes permiso para transmitir en este canal.'], 403);
         }
 
-        $ok = $this->floor->acquire($channel, $user->id);
+        $operatorId = $device->current_operator_id;
+        $result = $this->floor->acquire($channel, $device->id, $operatorId);
+
+        if ($result['ok']) {
+            $this->livekit->grantMicrophone("channel-{$channel->id}", "device-{$device->id}");
+        }
 
         return response()->json([
-            'granted' => $ok,
-            'message' => $ok ? 'Canal disponible. Puede transmitir.' : 'Canal ocupado.',
-        ], $ok ? 200 : 409);
+            'granted' => $result['ok'],
+            'message' => $result['message'],
+            'transmission_id' => $result['transmission_id'],
+        ], $result['ok'] ? 200 : 409);
     }
 
     public function release(Request $request, Channel $channel)
     {
-        $user = $this->resolveUser($request);
-        if (! $user) {
-            return response()->json(['message' => 'No hay usuarios configurados.'], 503);
-        }
-        $this->floor->release($channel, $user->id);
+        $device = $request->user();
+        $ok = $this->floor->release($channel, $device->id, $request->input('transmission_id'));
 
-        return response()->json(['message' => 'Canal libre.']);
+        if ($ok) {
+            $this->livekit->revokeMicrophone("channel-{$channel->id}", "device-{$device->id}");
+        }
+
+        return response()->json(['message' => $ok ? 'Canal libre.' : 'No posees el piso de este canal.'], $ok ? 200 : 409);
     }
 
     public function heartbeat(Request $request, Channel $channel)
     {
-        $user = $this->resolveUser($request);
-        if (! $user) {
-            return response()->json(['message' => 'No hay usuarios configurados.'], 503);
-        }
-        $locked = Channel::find($channel->id);
-        if ($locked && $locked->occupied_by === $user->id) {
-            $locked->update(['floor_expires_at' => now()->addSeconds(FloorControlService::FLOOR_TTL_SECONDS)]);
+        $device = $request->user();
+        $ok = $this->floor->heartbeat($channel, $device->id, $request->input('transmission_id'));
 
+        if ($ok) {
             return response()->json(['message' => 'ok']);
         }
+
+        $this->livekit->revokeMicrophone("channel-{$channel->id}", "device-{$device->id}");
 
         return response()->json(['message' => 'No posees el piso de este canal.'], 409);
     }

@@ -8,7 +8,7 @@ class CommunicationHistory extends Model
 {
     protected $table = 'communication_history';
 
-    protected $fillable = ['user_id', 'channel_id', 'started_at', 'ended_at'];
+    protected $fillable = ['user_id', 'channel_id', 'device_id', 'operator_id', 'transmission_id', 'started_at', 'ended_at'];
 
     protected $casts = ['started_at' => 'datetime', 'ended_at' => 'datetime'];
 

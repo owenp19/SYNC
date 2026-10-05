@@ -17,10 +17,10 @@ export class LoginPage {
   password = '';
   constructor(private auth: AuthService, private router: Router, private toast: ToastController) {}
   onLogin() {
-    this.auth.login(this.email, this.password).subscribe({
+    this.auth.login(this.email.trim(), this.password).subscribe({
       next: () => {
-        const email = this.auth.currentUser$.value?.email;
-        this.router.navigateByUrl(email === 'owen@sync.com' ? '/admin' : '/channels');
+        const role = this.auth.currentUser$.value?.role;
+        this.router.navigateByUrl(role === 'admin' ? '/admin' : '/channels');
       },
       error: (err) => {
         const msg = err?.error?.message ?? 'No se pudo iniciar sesión. Revisa tu conexión.';
@@ -29,4 +29,3 @@ export class LoginPage {
     });
   }
 }
-

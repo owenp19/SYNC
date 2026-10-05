@@ -1,9 +1,10 @@
 export interface User {
   id: number;
   name: string;
-  email: string;
+  employee_code: string;
+  department: string | null;
   department_id: number | null;
-  status: 'available' | 'busy' | 'offline' | 'emergency';
+  role: 'admin' | 'employee';
 }
 
 export interface Department {
@@ -25,6 +26,3 @@ export interface ChannelPermission {
   can_listen: boolean;
   can_transmit: boolean;
 }
-
-
-

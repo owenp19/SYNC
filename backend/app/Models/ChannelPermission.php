@@ -8,7 +8,7 @@ class ChannelPermission extends Model
 {
     protected $table = 'channel_permissions';
 
-    protected $fillable = ['user_id', 'channel_id', 'can_listen', 'can_transmit'];
+    protected $fillable = ['user_id', 'department_id', 'channel_id', 'can_listen', 'can_transmit'];
 
     protected function casts(): array
     {

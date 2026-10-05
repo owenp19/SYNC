@@ -25,7 +25,10 @@
       <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="newName" placeholder="Ej. María López"></ion-input>
     </ion-item>
     <ion-item lines="none" class="field">
-      <ion-input label="Correo" labelPlacement="floating" [(ngModel)]="newEmail" type="email" placeholder="maria@sync.local"></ion-input>
+      <ion-input label="Código de empleado" labelPlacement="floating" [(ngModel)]="newCode" placeholder="Ej. SEG004"></ion-input>
+    </ion-item>
+    <ion-item lines="none" class="field">
+      <ion-input label="PIN (4-6 dígitos)" labelPlacement="floating" [(ngModel)]="newPin" type="password"></ion-input>
     </ion-item>
     <ion-item lines="none" class="field">
       <ion-label>Departamento</ion-label>
@@ -45,7 +48,7 @@
     <ion-icon name="person-circle-outline"></ion-icon>
     <div class="info">
       <strong>{{ u.name }}</strong>
-      <small>{{ u.email }}</small>
+      <small>{{ u.employee_code }} · {{ u.department_name || 'Sin depto' }}</small>
     </div>
     <ion-item lines="none" class="dept-select">
       <ion-select [value]="u.department_id" placeholder="Depto" interface="popover" (ionChange)="changeDepartment(u, $event)">

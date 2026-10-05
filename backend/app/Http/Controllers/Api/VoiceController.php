@@ -4,49 +4,32 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Channel;
-use App\Models\ChannelPermission;
+use App\Services\ChannelAccessService;
 use App\Services\LiveKitTokenService;
 use Illuminate\Http\Request;
 
 class VoiceController extends Controller
 {
-    public function __construct(private LiveKitTokenService $tokens) {}
+    public function __construct(private LiveKitTokenService $tokens, private ChannelAccessService $access) {}
 
     public function token(Request $request)
     {
-        $data = $request->validate([
-            'channel_id' => 'required|integer|exists:channels,id',
-            'guest_id' => 'nullable|string|max:64',
-        ]);
-        $user = $request->user() ?? $this->userByDepartment($request->input('department'));
+        $data = $request->validate(['channel_id' => 'required|integer|exists:channels,id']);
+
+        $device = $request->user();
         $channel = Channel::findOrFail($data['channel_id']);
 
-        $permission = ChannelPermission::where('user_id', $user->id)
-            ->where('channel_id', $channel->id)->first();
-
-        if (! $permission || (! $permission->can_listen && ! $permission->can_transmit)) {
+        // can_listen requerido; departamento siempre desde el device, nunca del body
+        if (! $this->access->canListen($device, $channel->id)) {
             return response()->json(['message' => 'No tienes acceso a este canal.'], 403);
         }
 
         return response()->json([
-            'token' => $this->tokens->createToken($user->id, $channel->id, $user->name, $data['guest_id'] ?? null),
+            'token' => $this->tokens->createToken($device->id, $channel->id, $device->name, $device->uuid),
             'url' => config('livekit.host'),
-            // Clave E2EE por canal: solo quien recibe este token (con permiso del canal) puede descifrar.
             'e2ee_key' => hash_hmac('sha256', "channel-{$channel->id}", config('livekit.api_secret')),
-            'user_name' => $user->name,
+            'user_name' => $device->name,
+            'can_transmit' => $this->access->canTransmit($device, $channel->id),
         ]);
-    }
-
-    /** Modo sin login: el usuario corresponde al departamento que eligió el dispositivo. */
-    private function userByDepartment(?string $department): ?\App\Models\User
-    {
-        if ($department) {
-            $slug = \Illuminate\Support\Str::slug($department) . '@sync.local';
-            $u = \App\Models\User::where('email', $slug)->first()
-                ?? \App\Models\User::where('name', 'like', "%{$department}%")->first();
-            if ($u) return $u;
-        }
-
-        return \App\Models\User::where('email', 'supervisor@sync.local')->first() ?? \App\Models\User::first();
     }
 }

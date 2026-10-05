@@ -19,6 +19,7 @@ import { Channel } from '@core/models';
 export class PushToTalkPage implements OnInit, OnDestroy {
   channel: Channel | null = null;
   private channelId = 0;
+  private pttActive = false;
 
   constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController, private http: HttpClient, private native: NativeService) {}
 
@@ -45,8 +46,20 @@ export class PushToTalkPage implements OnInit, OnDestroy {
     this.voice.disconnect();
   }
 
-  async onPttDown() { await this.native.haptic('heavy'); await this.native.keepScreenOn(true); await this.voice.startTransmit(this.channelId); }
-  async onPttUp() { await this.native.haptic('light'); await this.native.keepScreenOn(false); await this.voice.stopTransmit(this.channelId); }
+  async onPttDown() {
+    if (this.pttActive) return; // evita doble pointerdown
+    this.pttActive = true;
+    await this.native.haptic('heavy');
+    await this.native.keepScreenOn(true);
+    await this.voice.startTransmit(this.channelId);
+  }
+  async onPttUp() {
+    if (!this.pttActive && (this.voice.floorState$.value === 'free' || this.voice.floorState$.value === 'denied')) return;
+    this.pttActive = false;
+    await this.native.haptic('light');
+    await this.native.keepScreenOn(false);
+    await this.voice.stopTransmit(this.channelId);
+  }
 }
 
 

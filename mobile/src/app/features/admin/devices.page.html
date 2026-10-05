@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin" text=""></ion-back-button>
+    </ion-buttons>
+    <img class="brand-img" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="assign-page" fullscreen>
+  <div class="hero">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Dispositivos</h1>
+    <p class="subtitle">Registra terminales y genera códigos de activación.</p>
+  </div>
+
+  <div class="card create-card">
+    <h3>Nuevo dispositivo</h3>
+    <ion-item lines="none" class="field">
+      <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="newName" placeholder="Seguridad-01"></ion-input>
+    </ion-item>
+    <ion-item lines="none" class="field">
+      <ion-label>Departamento</ion-label>
+      <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
+        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-button expand="block" class="cta" (click)="create()">Crear</ion-button>
+  </div>
+
+  <div class="user-row" *ngFor="let d of devices()">
+    <ion-icon name="wifi-outline"></ion-icon>
+    <div class="info">
+      <strong>{{ d.name }}</strong>
+      <small>{{ d.department_name }} · {{ d.status }} · última conexión: {{ d.last_seen_at || '—' }}</small>
+    </div>
+    <ion-item lines="none" class="dept-select">
+      <ion-button size="small" (click)="genCode(d.id)">Código</ion-button>
+      <ion-button size="small" color="danger" (click)="revoke(d.id)" *ngIf="d.status !== 'revoked'">Revocar</ion-button>
+      <ion-select [value]="d.department_id" interface="popover" (ionChange)="reassign(d, $event)">
+        <ion-select-option *ngFor="let dp of departments()" [value]="dp.id">{{ dp.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </div>
+</ion-content>

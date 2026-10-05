@@ -19,17 +19,17 @@ export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
   const http = inject(HttpClient);
   if (!auth.isAuthenticated || !auth.token) return router.createUrlTree(['/auth/login']);
-  return http.get<User>(`${environment.apiUrl}/auth/me`, { headers: { Authorization: `Bearer ${auth.token}` } }).pipe(
-    map(u => (u.email === 'owen@sync.com' ? true : router.createUrlTree(['/auth/login']))),
+  return http.get<User>(`${environment.apiUrl}/auth/me`).pipe(
+    map(u => (u.role === 'admin' ? true : router.createUrlTree(['/channels']))),
     catchError(() => of(router.createUrlTree(['/auth/login'])))
   );
 };
 
-/** Evita que el admin navegue a canales (el login es solo para la parte administrativa). */
+/** Evita que el admin navegue a canales (su login es solo para la parte administrativa). */
 export const noAdminChannelsGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const user = auth.currentUser$.value;
-  if (user?.email === 'owen@sync.com') return router.createUrlTree(['/admin']);
+  if (user?.role === 'admin') return router.createUrlTree(['/admin']);
   return true;
 };

@@ -14,5 +14,5 @@ export class ChoosePage {
   constructor(private router: Router) {}
 
   goChannels() { (document.activeElement as HTMLElement | null)?.blur(); this.router.navigate(['/channels']); }
-  goAdmin() { (document.activeElement as HTMLElement | null)?.blur(); this.router.navigate(['/admin']); }
+  goAdmin() { (document.activeElement as HTMLElement | null)?.blur(); this.router.navigate(['/auth/login']); }
 }

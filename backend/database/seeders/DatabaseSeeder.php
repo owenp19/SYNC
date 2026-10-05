@@ -2,72 +2,62 @@
 
 namespace Database\Seeders;
 
+use App\Models\ChannelPermission;
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $this->call(SyncSeeder::class);
 
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            ['name' => 'Recepción', 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
-        );
-
-        // Sin login activo: el usuario supervisor tiene acceso a todo (modo desarrollo)
-        $supervisor = User::firstOrCreate(
-            ['email' => 'supervisor@sync.local'],
-            ['name' => 'Supervisor', 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
-        );
-
-        // Acceso al panel de administración (/admin y /settings)
+        // Administrador
         $admin = User::firstOrCreate(
-            ['email' => 'owen@sync.com'],
-            ['name' => 'Owen', 'password' => \Illuminate\Support\Facades\Hash::make('1234567'), 'status' => 'available']
+            ['email' => 'admin@sync.local'],
+            [
+                'name' => 'Administrador',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'active' => true,
+                'status' => 'available',
+            ]
         );
-        foreach (\App\Models\Channel::all() as $channel) {
-            \App\Models\ChannelPermission::firstOrCreate(
-                ['user_id' => $admin->id, 'channel_id' => $channel->id],
-                ['can_listen' => true, 'can_transmit' => true]
-            );
-        }
 
-        foreach (\App\Models\Channel::all() as $channel) {
-            \App\Models\ChannelPermission::firstOrCreate(
-                ['user_id' => $supervisor->id, 'channel_id' => $channel->id],
-                ['can_listen' => true, 'can_transmit' => true]
-            );
-        }
-
-        // Usuarios reales por departamento: cada uno solo en su canal
-        $depts = [
-            'Equipo Recepción' => 'recepcion@sync.local',
-            'Equipo Mantenimiento' => 'mantenimiento@sync.local',
-            'Equipo Seguridad' => 'seguridad@sync.local',
-            'Equipo Ama de Llaves' => 'llaves@sync.local',
-            'Equipo Emergencias' => 'emergencias@sync.local',
-            'Equipo General' => 'general@sync.local',
+        // Empleados de ejemplo
+        $employees = [
+            ['code' => 'SEG001', 'name' => 'Carlos Pérez', 'dept' => 'Seguridad', 'pin' => '4285'],
+            ['code' => 'SEG002', 'name' => 'Alejandro Ruiz', 'dept' => 'Seguridad', 'pin' => '1357'],
+            ['code' => 'SEG003', 'name' => 'Juan López', 'dept' => 'Seguridad', 'pin' => '2468'],
+            ['code' => 'REC001', 'name' => 'Laura Gómez', 'dept' => 'Recepción', 'pin' => '1470'],
+            ['code' => 'HLL001', 'name' => 'Marcela Diaz', 'dept' => 'Ama de llaves', 'pin' => '3691'],
+            ['code' => 'MAN001', 'name' => 'Pedro Soto', 'dept' => 'Mantenimiento', 'pin' => '4826'],
         ];
 
-        foreach ($depts as $name => $email) {
+        foreach ($employees as $e) {
+            $dept = Department::where('name', $e['dept'])->first();
             $u = User::firstOrCreate(
-                ['email' => $email],
-                ['name' => $name, 'password' => \Illuminate\Support\Facades\Hash::make('secret'), 'status' => 'available']
+                ['employee_code' => $e['code']],
+                [
+                    'name' => $e['name'],
+                    'email' => strtolower($e['code']).'@sync.local',
+                    'password' => Hash::make('sync2026'),
+                    'pin' => $e['pin'],
+                    'department_id' => $dept?->id,
+                    'role' => 'employee',
+                    'active' => true,
+                    'status' => 'available',
+                ]
             );
-            // Permisos de todos los canales: escuchar y transmitir (privacidad por canal = membresía del canal).
+
             foreach (\App\Models\Channel::all() as $channel) {
-                \App\Models\ChannelPermission::firstOrCreate(
-                    ['user_id' => $u->id, 'channel_id' => $channel->id],
+                ChannelPermission::firstOrCreate(
+                    ['department_id' => $dept?->id, 'channel_id' => $channel->id],
                     ['can_listen' => true, 'can_transmit' => true]
                 );
             }

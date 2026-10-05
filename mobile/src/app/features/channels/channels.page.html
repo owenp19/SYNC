@@ -53,12 +53,11 @@
     <h1>Canales</h1>
     <p class="subtitle">Selecciona un departamento para entrar al canal de voz.</p>
 
-    <label class="dept">
-      <span>Soy de</span>
-      <select (change)="onDeptChange($event)">
-        <option *ngFor="let d of departments" [value]="d" [selected]="d === department">{{ d }}</option>
-      </select>
+    <label class="dept" *ngIf="device.device$ | async as d">
+      <span>{{ d.name }}</span>
+      <strong>{{ d.operator?.name || 'Sin operador' }} · {{ d.department }}</strong>
     </label>
+    <button class="change-operator" (click)="changeOperator()">Cambiar operador</button>
   </div>
 
   <div class="alert" *ngIf="loadError$ | async as loadError">

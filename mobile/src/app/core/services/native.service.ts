@@ -4,8 +4,6 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Network } from '@capacitor/network';
 import { Device } from '@capacitor/device';
-import { Geolocation } from '@capacitor/geolocation';
-import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { App } from '@capacitor/app';
@@ -38,9 +36,6 @@ export class NativeService {
         if (canGoBack) window.history.back();
         else App.exitApp();
       }).catch(() => {});
-
-      this.setupPush().catch(() => {});
-      this.currentPosition().catch(() => {});
     }
   }
 
@@ -68,17 +63,6 @@ export class NativeService {
     } catch { return 'Dispositivo no disponible'; }
   }
 
-  /** Geolocation: posición actual (canales por hotel/edificio). */
-  async currentPosition(): Promise<{ latitude: number; longitude: number } | null> {
-    try {
-      const pos = await Geolocation.getCurrentPosition({ timeout: 5000 });
-      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-    } catch (e) {
-      console.warn('Geolocation', e);
-      return null;
-    }
-  }
-
   /** Screen orientation: bloquear a portrait durante PTT. */
   async lockPortrait() {
     if (!this.isNative) return;
@@ -96,14 +80,6 @@ export class NativeService {
       if (on) await KeepAwake.keepAwake();
       else await KeepAwake.allowSleep();
     } catch {}
-  }
-
-  /** Push: solicitar permiso y registrar token (Android/iOS real). */
-  private async setupPush() {
-    try {
-      const perm = await PushNotifications.requestPermissions();
-      if (perm.receive === 'granted') await PushNotifications.register();
-    } catch (e) { console.warn('Push', e); }
   }
 
   /** Local notifications: alerta offline de canal activo. */
