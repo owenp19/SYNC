@@ -52,7 +52,9 @@
 
     <!-- INDICADORES -->
     <div class="dots">
-      <span *ngFor="let d of [0,1,2]" [class.active]="activeDot() === d"></span>
+      @for (d of [0,1,2]; track d) {
+        <span [class.active]="activeDot() === d"></span>
+      }
     </div>
 
     <!-- CTA -->

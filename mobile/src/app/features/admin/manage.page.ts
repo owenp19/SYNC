@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
@@ -9,16 +9,17 @@ import { environment } from '@env/environment';
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonIcon],
+  imports: [FormsModule, IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonIcon],
   templateUrl: './manage.page.html',
   styleUrls: ['./manage.page.scss'],
 })
 export class ManagePage {
+  private http = inject(HttpClient);
+  private toast = inject(ToastController);
+
   deptName = '';
   channelName = '';
   channelType = 'private';
-
-  constructor(private http: HttpClient, private toast: ToastController) {}
 
   async createDepartment() {
     if (!this.deptName.trim()) return;

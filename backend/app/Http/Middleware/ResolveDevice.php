@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Device;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\Device;
 
 class ResolveDevice
 {
@@ -20,7 +20,11 @@ class ResolveDevice
             return response()->json(['message' => 'Este dispositivo ya no está autorizado. Contacte al administrador.'], 403);
         }
 
-        $device->update(['last_seen_at' => now()]);
+        // Una escritura por minuto como máximo: actualizar last_seen_at en cada
+        // petición duplicaría la carga de escritura de la BD bajo polling intenso.
+        if ($device->last_seen_at === null || $device->last_seen_at->diffInSeconds(now()) >= 60) {
+            $device->update(['last_seen_at' => now()]);
+        }
 
         return $next($request);
     }

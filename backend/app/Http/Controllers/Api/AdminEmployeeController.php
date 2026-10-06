@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminEmployeeController extends Controller
 {
@@ -31,26 +32,28 @@ class AdminEmployeeController extends Controller
         return Department::all();
     }
 
+    /**
+     * Crea un empleado. El empleado NO se autentica: es solo un OPERADOR
+     * identificable que un device puede seleccionar por turno. Sin PIN ni contraseña.
+     */
     public function createEmployee(Request $r)
     {
         $data = $r->validate([
             'name' => 'required|string|max:255',
-            'employee_code' => 'required|string|max:32|unique:users,employee_code',
-            'pin' => 'required|string|regex:/^\d{4,6}$/',
+            'employee_code' => 'nullable|string|max:32|unique:users,employee_code',
             'department_id' => 'required|integer|exists:departments,id',
-            'role' => 'nullable|in:admin,employee',
+            'active' => 'nullable|boolean',
         ]);
 
         return DB::transaction(function () use ($data) {
             $user = User::create([
                 'name' => $data['name'],
-                'email' => $data['employee_code'].'@sync.local',
-                'password' => Hash::make(\Illuminate\Support\Str::random(32)),
-                'employee_code' => $data['employee_code'],
-                'pin' => $data['pin'],
+                'email' => ($data['employee_code'] ?? 'emp-'.Str::random(8)).'@sync.local',
+                'password' => Hash::make(Str::random(32)), // nunca se usa: los empleados no hacen login
+                'employee_code' => $data['employee_code'] ?? null,
                 'department_id' => $data['department_id'],
-                'role' => $data['role'] ?? 'employee',
-                'active' => true,
+                'role' => 'employee',
+                'active' => $data['active'] ?? true,
                 'status' => 'available',
             ]);
 
@@ -82,12 +85,40 @@ class AdminEmployeeController extends Controller
         });
     }
 
-    public function resetPin(Request $r, User $user)
+    /**
+     * Matriz de permisos por DEPARTAMENTO: qué departamento puede
+     * escuchar (can_listen) y transmitir (can_transmit) en cada canal.
+     */
+    public function permissionMatrix()
     {
-        $data = $r->validate(['pin' => 'required|string|regex:/^\d{4,6}$/']);
-        $user->update(['pin' => $data['pin']]);
+        $departments = Department::orderBy('name')->get(['id', 'name']);
+        $channels = Channel::orderBy('id')->get(['id', 'name', 'type']);
+        $cells = ChannelPermission::whereNotNull('department_id')
+            ->get(['department_id', 'channel_id', 'can_listen', 'can_transmit']);
 
-        return response()->json(['message' => 'PIN actualizado']);
+        return response()->json([
+            'departments' => $departments,
+            'channels' => $channels,
+            'permissions' => $cells,
+        ]);
+    }
+
+    /** Actualiza (o crea) una celda de la matriz de permisos de un departamento. */
+    public function updatePermission(Request $r)
+    {
+        $data = $r->validate([
+            'department_id' => 'required|integer|exists:departments,id',
+            'channel_id' => 'required|integer|exists:channels,id',
+            'can_listen' => 'required|boolean',
+            'can_transmit' => 'required|boolean',
+        ]);
+
+        $perm = ChannelPermission::updateOrCreate(
+            ['department_id' => $data['department_id'], 'channel_id' => $data['channel_id']],
+            ['can_listen' => $data['can_listen'], 'can_transmit' => $data['can_transmit']]
+        );
+
+        return response()->json($perm);
     }
 
     /**
@@ -137,12 +168,36 @@ class AdminEmployeeController extends Controller
         $base = ['AyB', 'Seguridad Interna', 'Ama de Llaves', 'Recepción', 'ULC', 'Almacén', 'Boutique', 'Actividades'];
         $created = 0;
         foreach ($base as $name) {
-            if (Department::where('name', $name)->exists()) continue;
+            if (Department::where('name', $name)->exists()) {
+                continue;
+            }
             $channel = Channel::create(['name' => $name, 'type' => 'private']);
             Department::create(['name' => $name, 'channel_id' => $channel->id]);
             $created++;
         }
+        $this->seedDefaultPermissions();
 
         return response()->json(['created' => $created, 'departments' => Department::all()]);
+    }
+
+    /**
+     * Permisos por defecto de cada departamento: su canal privado
+     * (escuchar + transmitir) y los canales generales/de emergencia.
+     */
+    private function seedDefaultPermissions(): void
+    {
+        $generalIds = Channel::whereIn('type', ['general', 'emergency'])->pluck('id');
+        foreach (Department::all() as $dept) {
+            $ids = collect($generalIds);
+            if ($dept->channel_id) {
+                $ids->push($dept->channel_id);
+            }
+            foreach ($ids->unique() as $channelId) {
+                ChannelPermission::firstOrCreate(
+                    ['department_id' => $dept->id, 'channel_id' => $channelId],
+                    ['can_listen' => true, 'can_transmit' => true]
+                );
+            }
+        }
     }
 }

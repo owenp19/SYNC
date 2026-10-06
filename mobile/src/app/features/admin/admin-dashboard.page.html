@@ -10,6 +10,7 @@
       <a class="menu-item" href="/admin/assignments"><ion-icon name="people"></ion-icon><span>Asignaciones</span></a>
       <a class="menu-item" href="/admin/manage"><ion-icon name="add-circle-outline"></ion-icon><span>Crear canal / depto</span></a>
       <a class="menu-item" href="/admin/devices"><ion-icon name="wifi-outline"></ion-icon><span>Dispositivos</span></a>
+      <a class="menu-item" href="/admin/permissions"><ion-icon name="shield-checkmark"></ion-icon><span>Permisos</span></a>
       <a class="menu-item" href="/settings"><ion-icon name="settings-outline"></ion-icon><span>Configuración</span></a>
       <a class="menu-item" (click)="logout()"><ion-icon name="person-circle-outline"></ion-icon><span>Cerrar sesión</span></a>
     </nav>
@@ -28,8 +29,7 @@
 </ion-header>
 
 <ion-content id="dash-content" class="dash-page" fullscreen>
-  <ng-container *ngIf="channels$ | async as channels">
-
+  @if (channels$ | async; as channels) {
     <div class="hero">
       <div>
         <p class="eyebrow">PANEL ADMINISTRATIVO</p>
@@ -40,7 +40,6 @@
         <span class="pulse"></span> EN VIVO
       </div>
     </div>
-
     <div class="stats">
       <div class="stat accent-teal">
         <ion-icon name="grid-outline"></ion-icon>
@@ -58,7 +57,6 @@
         <span>Emergencia</span>
       </div>
     </div>
-
     <div class="grid-2">
       <div class="card">
         <h3>Estado global</h3>
@@ -69,27 +67,26 @@
         <canvas id="eventsChart"></canvas>
       </div>
     </div>
-
     <h2 class="section-title">Estado por canal</h2>
-
-    <div class="channel-row" *ngFor="let c of channels" [class.busy]="c.status === 'busy'">
-      <span class="dot" [class.busy]="c.status === 'busy'"></span>
-      <div class="info">
-        <strong>{{ c.name }}</strong>
-        <small>{{ c.status === 'busy' ? ('Ocupado por ' + (c.occupier_name || '…')) : 'Libre' }}</small>
+    @for (c of channels; track c) {
+      <div class="channel-row" [class.busy]="c.status === 'busy'">
+        <span class="dot" [class.busy]="c.status === 'busy'"></span>
+        <div class="info">
+          <strong>{{ c.name }}</strong>
+          <small>{{ c.status === 'busy' ? ('Ocupado por ' + (c.occupier_name || '…')) : 'Libre' }}</small>
+        </div>
+        <span class="badge" [class.busy]="c.status === 'busy'">{{ c.status === 'busy' ? 'EN VIVO' : 'LIBRE' }}</span>
       </div>
-      <span class="badge" [class.busy]="c.status === 'busy'">{{ c.status === 'busy' ? 'EN VIVO' : 'LIBRE' }}</span>
-    </div>
-
+    }
     <h2 class="section-title">Historial</h2>
-
     <div class="timeline">
-      <div class="event-row" *ngFor="let e of events$ | async">
-        <ion-icon name="pulse-outline"></ion-icon>
-        <span class="msg"><strong>{{ e.user_name }}</strong> · {{ e.event }} en <strong>{{ e.channel_name }}</strong></span>
-        <small>{{ e.created_at | date:'shortTime' }}</small>
-      </div>
+      @for (e of events$ | async; track e) {
+        <div class="event-row">
+          <ion-icon name="pulse-outline"></ion-icon>
+          <span class="msg"><strong>{{ e.user_name }}</strong> · {{ e.event }} en <strong>{{ e.channel_name }}</strong></span>
+          <small>{{ e.created_at | date:'shortTime' }}</small>
+        </div>
+      }
     </div>
-
-  </ng-container>
+  }
 </ion-content>

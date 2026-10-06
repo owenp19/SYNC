@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Department;
 use App\Models\Device;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -42,18 +42,56 @@ class AdminDeviceController extends Controller
         return response()->json($device, 201);
     }
 
-    /** Genera/regenera el código de activación (6 dígitos, 24h, un solo uso). */
+    /**
+     * Genera el código de activación (6 dígitos, 24h, un solo uso).
+     * Solo para devices pendientes o revocados: para un device ACTIVO hay que
+     * usar reset() (RESET/TRANSFER), que además mata el token del teléfono anterior.
+     */
     public function generateCode(Device $device)
     {
+        if ($device->status === 'active') {
+            return response()->json([
+                'message' => 'El dispositivo ya está activo. Usa "Transferir" (reset) para moverlo a otro teléfono.',
+            ], 422);
+        }
+
         $code = (string) random_int(100000, 999999);
 
         $device->update([
             'activation_token_hash' => Hash::make($code),
+            'activation_lookup' => DeviceController::codeLookup($code),
             'activation_expires_at' => now()->addHours(24),
             'status' => $device->status === 'revoked' ? 'pending' : $device->status,
         ]);
 
         return response()->json(['code' => $code, 'expires_at' => $device->activation_expires_at]);
+    }
+
+    /**
+     * RESET / TRANSFER DEVICE: mueve la identidad del device a otro teléfono.
+     * - Revoca TODOS los tokens existentes (el teléfono anterior deja de funcionar).
+     * - Limpia el operador del turno e invalida cualquier código anterior.
+     * - Emite un código nuevo de un solo uso y deja el device en estado pending.
+     */
+    public function reset(Device $device)
+    {
+        $code = (string) random_int(100000, 999999);
+        $expiresAt = now()->addHours(24);
+
+        DB::transaction(function () use ($device, $code, $expiresAt) {
+            $device->tokens()->delete();
+            $device->update([
+                'status' => 'pending',
+                'current_operator_id' => null,
+                'activation_token_hash' => Hash::make($code),
+                'activation_lookup' => DeviceController::codeLookup($code),
+                'activation_expires_at' => $expiresAt,
+                'activated_at' => null,
+                'revoked_at' => null,
+            ]);
+        });
+
+        return response()->json(['code' => $code, 'expires_at' => $expiresAt]);
     }
 
     public function revoke(Device $device)

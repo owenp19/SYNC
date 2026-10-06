@@ -7,6 +7,7 @@ import { arrowForwardOutline, bed, business, chevronForward, construct, globe, g
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { NativeService } from './core/services/native.service';
+import { DeviceCredentialStorage, SyncDeviceCredentialStorage } from './core/services/device-credential.storage';
 import { APP_INITIALIZER } from '@angular/core';
 
 addIcons({
@@ -43,6 +44,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: DeviceCredentialStorage, useClass: SyncDeviceCredentialStorage },
     {
       provide: APP_INITIALIZER,
       useFactory: (native: NativeService) => () => native.init(),

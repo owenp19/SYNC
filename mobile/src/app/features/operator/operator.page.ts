@@ -1,19 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { IonContent, IonIcon, ToastController } from '@ionic/angular';
 import { DeviceService } from '@core/services/device.service';
 
 @Component({
   selector: 'app-operator',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon],
+  imports: [IonContent, IonIcon],
   templateUrl: './operator.page.html',
   styleUrls: ['./operator.page.scss'],
 })
 export class OperatorPage implements OnInit {
+  private device = inject(DeviceService);
+  private router = inject(Router);
+  private toast = inject(ToastController);
+
   operators: { id: number; name: string }[] = [];
-  constructor(private device: DeviceService, private router: Router, private toast: ToastController) {}
 
   async ngOnInit() {
     try {
@@ -24,6 +27,7 @@ export class OperatorPage implements OnInit {
   async choose(id: number | null) {
     try {
       await this.device.setOperator(id);
+      this.device.operatorPromptedThisRun = true;
       this.router.navigateByUrl('/channels');
     } catch (e: any) {
       const msg = e?.error?.message ?? 'No se pudo asignar el operador.';

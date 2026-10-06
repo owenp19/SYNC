@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Channel extends Model
 {
-    protected $fillable = ['name', 'type', 'occupied_by', 'occupied_device_id', 'occupied_operator_id', 'occupied_device', 'floor_expires_at', 'floor_session_id'];
+    protected $fillable = ['name', 'type', 'occupied_by', 'occupied_device_id', 'occupied_operator_id', 'floor_expires_at', 'floor_session_id'];
 
     protected $casts = ['floor_expires_at' => 'datetime'];
 

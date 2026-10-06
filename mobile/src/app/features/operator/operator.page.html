@@ -8,9 +8,11 @@
     <div class="card">
       <p class="eyebrow">¿QUIÉN ESTÁ UTILIZANDO ESTE DISPOSITIVO?</p>
       <h2>Selecciona tu nombre</h2>
-      <button class="operator-btn" *ngFor="let o of operators" (click)="choose(o.id)">
-        <ion-icon name="person-circle-outline"></ion-icon> {{ o.name }}
-      </button>
+      @for (o of operators; track o) {
+        <button class="operator-btn" (click)="choose(o.id)">
+          <ion-icon name="person-circle-outline"></ion-icon> {{ o.name }}
+        </button>
+      }
       <button class="operator-btn skip" (click)="choose(null)">Continuar sin operador</button>
     </div>
   </div>

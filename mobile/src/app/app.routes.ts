@@ -15,6 +15,7 @@ export const routes: Routes = [
   { path: 'admin/assignments', canActivate: [adminGuard], loadComponent: () => import('./features/admin/assignments.page').then(m => m.AssignmentsPage) },
   { path: 'admin/manage', canActivate: [adminGuard], loadComponent: () => import('./features/admin/manage.page').then(m => m.ManagePage) },
   { path: 'admin/devices', canActivate: [adminGuard], loadComponent: () => import('./features/admin/devices.page').then(m => m.DevicesPage) },
+  { path: 'admin/permissions', canActivate: [adminGuard], loadComponent: () => import('./features/admin/permissions.page').then(m => m.PermissionsPage) },
   { path: 'talk/:id', canActivate: [deviceGuard], loadComponent: () => import('./features/push-to-talk/push-to-talk.page').then(m => m.PushToTalkPage) },
   { path: '**', redirectTo: 'welcome' }
 ];

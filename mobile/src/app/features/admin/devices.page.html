@@ -22,24 +22,37 @@
     <ion-item lines="none" class="field">
       <ion-label>Departamento</ion-label>
       <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
-        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
+        @for (d of departments(); track d) {
+          <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
+        }
       </ion-select>
     </ion-item>
     <ion-button expand="block" class="cta" (click)="create()">Crear</ion-button>
   </div>
 
-  <div class="user-row" *ngFor="let d of devices()">
-    <ion-icon name="wifi-outline"></ion-icon>
-    <div class="info">
-      <strong>{{ d.name }}</strong>
-      <small>{{ d.department_name }} · {{ d.status }} · última conexión: {{ d.last_seen_at || '—' }}</small>
+  @for (d of devices(); track d) {
+    <div class="user-row">
+      <ion-icon name="wifi-outline"></ion-icon>
+      <div class="info">
+        <strong>{{ d.name }}</strong>
+        <small>{{ d.department_name }} · {{ d.status }} · última conexión: {{ d.last_seen_at || '—' }}</small>
+      </div>
+      <ion-item lines="none" class="dept-select">
+        @if (d.status !== 'active') {
+          <ion-button size="small" (click)="genCode(d.id)">Código</ion-button>
+        }
+        @if (d.status === 'active') {
+          <ion-button size="small" color="warning" (click)="transfer(d.id)">Transferir</ion-button>
+        }
+        @if (d.status !== 'revoked') {
+          <ion-button size="small" color="danger" (click)="revoke(d.id)">Revocar</ion-button>
+        }
+        <ion-select [value]="d.department_id" interface="popover" (ionChange)="reassign(d, $event)">
+          @for (dp of departments(); track dp) {
+            <ion-select-option [value]="dp.id">{{ dp.name }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
     </div>
-    <ion-item lines="none" class="dept-select">
-      <ion-button size="small" (click)="genCode(d.id)">Código</ion-button>
-      <ion-button size="small" color="danger" (click)="revoke(d.id)" *ngIf="d.status !== 'revoked'">Revocar</ion-button>
-      <ion-select [value]="d.department_id" interface="popover" (ionChange)="reassign(d, $event)">
-        <ion-select-option *ngFor="let dp of departments()" [value]="dp.id">{{ dp.name }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-  </div>
+  }
 </ion-content>

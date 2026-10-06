@@ -25,41 +25,45 @@
       <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="newName" placeholder="Ej. María López"></ion-input>
     </ion-item>
     <ion-item lines="none" class="field">
-      <ion-input label="Código de empleado" labelPlacement="floating" [(ngModel)]="newCode" placeholder="Ej. SEG004"></ion-input>
-    </ion-item>
-    <ion-item lines="none" class="field">
-      <ion-input label="PIN (4-6 dígitos)" labelPlacement="floating" [(ngModel)]="newPin" type="password"></ion-input>
+      <ion-input label="Código de empleado (opcional)" labelPlacement="floating" [(ngModel)]="newCode" placeholder="Ej. SEG004"></ion-input>
     </ion-item>
     <ion-item lines="none" class="field">
       <ion-label>Departamento</ion-label>
       <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
-        <ion-select-option [value]="null">Sin depto</ion-select-option>
-        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
+        @for (d of departments(); track d) {
+          <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
+        }
       </ion-select>
     </ion-item>
     <ion-button expand="block" class="cta" (click)="createUser()">
       <ion-icon slot="start" name="person-add-outline"></ion-icon>
       Agregar persona
     </ion-button>
-    <p class="note">La contraseña inicial será 1234567. Assignable después desde la lista.</p>
+    <p class="note">El empleado no hace login: solo aparece como operador seleccionable en los dispositivos de su departamento.</p>
   </div>
 
-  <div class="user-row" *ngFor="let u of users()">
-    <ion-icon name="person-circle-outline"></ion-icon>
-    <div class="info">
-      <strong>{{ u.name }}</strong>
-      <small>{{ u.employee_code }} · {{ u.department_name || 'Sin depto' }}</small>
+  @for (u of users(); track u) {
+    <div class="user-row">
+      <ion-icon name="person-circle-outline"></ion-icon>
+      <div class="info">
+        <strong>{{ u.name }}</strong>
+        <small>{{ u.employee_code }} · {{ u.department_name || 'Sin depto' }}</small>
+      </div>
+      <ion-item lines="none" class="dept-select">
+        <ion-select [value]="u.department_id" placeholder="Depto" interface="popover" (ionChange)="changeDepartment(u, $event)">
+          <ion-select-option [value]="null">Sin depto</ion-select-option>
+          @for (d of departments(); track d) {
+            <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
     </div>
-    <ion-item lines="none" class="dept-select">
-      <ion-select [value]="u.department_id" placeholder="Depto" interface="popover" (ionChange)="changeDepartment(u, $event)">
-        <ion-select-option [value]="null">Sin depto</ion-select-option>
-        <ion-select-option *ngFor="let d of departments()" [value]="d.id">{{ d.name }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-  </div>
+  }
 
-  <div class="empty" *ngIf="users().length === 0">
-    <ion-icon name="people-outline"></ion-icon>
-    <p>Cargando usuarios…</p>
-  </div>
+  @if (users().length === 0) {
+    <div class="empty">
+      <ion-icon name="people-outline"></ion-icon>
+      <p>Cargando usuarios…</p>
+    </div>
+  }
 </ion-content>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -12,11 +11,11 @@ class Device extends Authenticatable
 
     protected $fillable = [
         'uuid', 'name', 'department_id', 'status',
-        'activation_token_hash', 'activation_expires_at', 'activated_at',
+        'activation_token_hash', 'activation_lookup', 'activation_expires_at', 'activated_at',
         'revoked_at', 'last_seen_at', 'current_operator_id',
     ];
 
-    protected $hidden = ['activation_token_hash'];
+    protected $hidden = ['activation_token_hash', 'activation_lookup'];
 
     protected $casts = [
         'activated_at' => 'datetime',

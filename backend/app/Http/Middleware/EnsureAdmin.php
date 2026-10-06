@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -10,7 +11,7 @@ class EnsureAdmin
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
-        if (! $user || ! $user instanceof \App\Models\User) {
+        if (! $user || ! $user instanceof User) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
         if ($user->role !== 'admin') {

@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject } from '@angular/core';
+
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { PreloaderComponent } from './shared/components/preloader.component';
 import { DeviceService } from './core/services/device.service';
@@ -7,18 +7,20 @@ import { DeviceService } from './core/services/device.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, IonApp, IonRouterOutlet, PreloaderComponent],
+  imports: [IonApp, IonRouterOutlet, PreloaderComponent],
   template: `
     <ion-app>
       <ion-router-outlet></ion-router-outlet>
-      <app-preloader *ngIf="loading()"></app-preloader>
+      @if (loading()) {
+        <app-preloader></app-preloader>
+      }
     </ion-app>
-  `
+    `
 })
 export class AppComponent implements OnInit {
-  loading = signal(true);
+  private device = inject(DeviceService);
 
-  constructor(private device: DeviceService) {}
+  loading = signal(true);
 
   ngOnInit() {
     this.device.init();

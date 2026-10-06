@@ -83,21 +83,34 @@ npx cap open android
 
 ## Configuración WebRTC / LiveKit
 
-- LiveKit corre en `ws://localhost:7880` con clave `devkey`/`secret` (ver `infra/livekit/livekit.yaml`).
-- El backend genera el token JWT: `POST /api/voice/token { channel_id, guest_id }`.
-- La app se conecta con `livekit-client` y publica el micrófono solo al adquirir el piso.
+- LiveKit corre en `ws://localhost:7880`; las claves están en `infra/livekit/livekit.yaml` y deben coincidir con `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` del `backend/.env`. En producción se genera un par nuevo (nunca el de desarrollo).
+- El backend genera el token JWT: `POST /api/voice/token { channel_id }` (solo si el departamento del device tiene `can_listen` en el canal).
+- La app se conecta con `livekit-client` y publica el micrófono solo al adquirir el piso (el permiso lo concede el backend, server-side, nunca el cliente).
 
 ## Floor Control (turno de voz)
 
-1. Usuario presiona PTT → `POST /api/channels/{id}/floor/acquire`
-2. Si el canal está libre → `granted: true`, la app publica el mic.
-3. Si está ocupado → `409 Canal ocupado`, la UI muestra "Canal ocupado".
-4. Mientras transmite, heartbeat cada 60 s → `POST /api/channels/{id}/floor/heartbeat` renueva `floor_expires_at` (TTL 5 min).
-5. Al soltar PTT → `POST /api/channels/{id}/floor/release`, canal queda libre y se registra en historial / eventos.
+1. Usuario presiona PTT → `POST /api/channels/{id}/floor/acquire` (requiere `can_transmit` del departamento).
+2. Si el canal está libre → `granted: true` + `transmission_id`, el backend habilita el mic en LiveKit y la app reproduce el chirrido de radio antes de abrir el mic.
+3. Si está ocupado → `409 Canal ocupado` (bonk grave en la app).
+4. Si LiveKit no puede conceder el micrófono → el backend revierte el piso (`502`, el canal NO queda ocupado).
+5. Mientras transmite, heartbeat cada **5 s** → `POST /api/channels/{id}/floor/heartbeat` renueva `floor_expires_at` (**TTL 15 s**).
+6. Fail-safe del cliente: 2 heartbeats fallidos consecutivos (o un 409) → mic apagado, release best-effort y aviso en la UI.
+7. Al soltar PTT → `POST /api/channels/{id}/floor/release` (con `transmission_id` obligatorio), canal libre y se registra en historial/eventos.
 
-Piso expirado se libera automáticamente al siguiente `acquire`. En SQLite local el `lockForUpdate` no es atómico; en producción (MySQL/Redis) sí.
+Expiración server-side real: el comando `floor:expire-stale` corre cada **30 s** vía Laravel Scheduler (en dev lo lanza `npm run dev` con `schedule:work`; en producción, cron cada minuto con `schedule:run` o un worker de `schedule:work`). No depende del polling del frontend.
 
-Solo un usuario puede transmitir a la vez; el resto recibe el audio vía SFU.
+Solo un device puede transmitir a la vez; el resto recibe el audio vía SFU.
+
+## Activación y transferencia de dispositivos
+
+- El admin crea el Device (nombre + departamento) en el dashboard y genera un **código de 6 dígitos** (24 h, un solo uso).
+- En el celular: abrir SYNC → escribir el código → el device queda activado (sin login, credencial guardada cifrada con Android Keystore).
+- **Transferir a otro teléfono**: dashboard → Dispositivos → "Transferir" → revoca el token actual, invalida códigos anteriores y emite un código nuevo. Solo el teléfono nuevo funciona después.
+- Generar código para un device activo está bloqueado: siempre se usa "Transferir".
+
+## Permisos por departamento
+
+Dashboard → **Permisos**: matriz departamento × canal con `can_listen` / `can_transmit`. Los permisos son del DEPARTAMENTO, nunca del empleado. Un device solo recibe en `GET /api/channels` los canales donde su departamento tiene `can_listen = true`.
 
 ## Flujo de canales (ejemplo hotel)
 
@@ -124,13 +137,23 @@ Solo un usuario puede transmitir a la vez; el resto recibe el audio vía SFU.
 3. Actualizar `mobile/src/environments/environment.prod.ts` con esas URLs.
 4. Cambiar `LIVEKIT_API_KEY/SECRET` y claves de producción.
 
-## Próximos pasos
+## Estado actual y próximos pasos
 
-- [ ] Login/registro completo y gestión de usuarios
-- [ ] CRUD de departamentos y canales privados
-- [ ] Permisos por usuario/canal (escuchar/transmitir)
-- [ ] Push-To-Talk end-to-end en dispositivo físico
+Implementado:
+
+- [x] Radio SIN login para trabajadores (activación por código de un solo uso)
+- [x] Login administrativo (dashboard: asignaciones, dispositivos, permisos, auditoría)
+- [x] Floor control con TTL 15 s + heartbeat 5 s + barrido server-side cada 30 s
+- [x] Permisos por departamento (matriz admin: escuchar/transmitir por canal)
+- [x] Transferencia de dispositivos (reset: mata el token anterior)
+- [x] Beeps de radio reales (chirrido/blip/bonk) + fail-safe de heartbeat
+- [x] Credencial del device cifrada (Android Keystore)
+
+Pendiente (siguiente fase):
+
+- [ ] Radio siempre conectado / background Android (foreground service)
 - [ ] Canal de emergencia con prioridad (preemption)
 - [ ] Indicador visual de "en vivo" y lista de usuarios conectados
 - [ ] Historial y grabaciones de eventos de audio
+- [ ] Migración a VPS (ver arriba) para uso fuera de la WiFi local
 

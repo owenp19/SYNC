@@ -13,6 +13,8 @@ const useLocalLivekit = !hasDocker && !!livekitPath;
 
 const tasks = [
   { name: 'backend', cmd: 'npm run dev:backend', color: 'magenta' },
+  // Scheduler: ejecuta el barrido de pisos expirados (floor:expire-stale cada 30s)
+  { name: 'schedulr', cmd: 'npm run dev:scheduler', color: 'yellow' },
   { name: 'mobile', cmd: 'npm run dev:mobile', color: 'cyan' },
 ];
 

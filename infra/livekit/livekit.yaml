@@ -1,8 +1,10 @@
 port: 7880
 rtc:
   udp_port: 7882
+# Clave de DESARROLLO local (debe coincidir con backend/.env).
+# En producción genera un par distinto y NO lo subas al repositorio.
 keys:
-  devkey: super-secret-key-for-sync-dev-only-32chars
+  SYNC_DEV_KUXJLNMGQV: d3040e2ef59ae494ab1f438c7bca41476c7775db28d8f0ca167c985cf229228c
 logging:
   level: info
 

@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin" text=""></ion-back-button>
+    </ion-buttons>
+    <img class="brand-img" src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="perm-page" fullscreen>
+  <div class="hero">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Matriz de permisos</h1>
+    <p class="subtitle">Qué departamento puede escuchar (E) y transmitir (T) en cada canal.</p>
+  </div>
+
+  <div class="matrix-scroll">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th class="channel-col">Canal</th>
+          @for (d of departments(); track d) {
+            <th>{{ d.name }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of channels(); track c) {
+          <tr>
+            <td class="channel-col">
+              <strong>{{ c.name }}</strong>
+              <small>{{ c.type }}</small>
+            </td>
+            @for (d of departments(); track d) {
+              <td>
+                <div class="cell">
+                  <button
+                    class="toggle"
+                    [class.on]="cell(d.id, c.id).can_listen"
+                    (click)="toggle(d.id, c.id, 'can_listen')"
+                  [attr.aria-label]="'Escuchar ' + d.name + ' en ' + c.name">E</button>
+                  <button
+                    class="toggle transmit"
+                    [class.on]="cell(d.id, c.id).can_transmit"
+                    (click)="toggle(d.id, c.id, 'can_transmit')"
+                  [attr.aria-label]="'Transmitir ' + d.name + ' en ' + c.name">T</button>
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><span class="toggle on mini">E</span> Escuchar</span>
+    <span><span class="toggle on mini transmit">T</span> Transmitir</span>
+  </div>
+</ion-content>

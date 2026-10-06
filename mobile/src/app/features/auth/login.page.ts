@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonItem, IonInput, IonButton, IonIcon, ToastController } from '@ionic/angular';
 import { AuthService } from '@core/services/auth.service';
@@ -8,14 +8,17 @@ import { AuthService } from '@core/services/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonItem, IonInput, IonButton, IonIcon],
+  imports: [FormsModule, IonContent, IonItem, IonInput, IonButton, IonIcon],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private toast = inject(ToastController);
+
   email = '';
   password = '';
-  constructor(private auth: AuthService, private router: Router, private toast: ToastController) {}
   onLogin() {
     this.auth.login(this.email.trim(), this.password).subscribe({
       next: () => {

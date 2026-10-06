@@ -1,20 +1,20 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
+
 import { Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular';
 
 @Component({
   selector: 'app-welcome',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon],
+  imports: [IonContent, IonIcon],
   templateUrl: './welcome.page.html',
   styleUrls: ['./welcome.page.scss'],
 })
 export class WelcomePage implements OnInit, OnDestroy {
+  private router = inject(Router);
+
   activeDot = signal(0);
   private dotTimer: any;
-
-  constructor(private router: Router) {}
 
   ngOnInit() {
     this.dotTimer = setInterval(() => {

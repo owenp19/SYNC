@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '@env/environment';
+import { DeviceCredentialStorage } from './device-credential.storage';
 
 export interface DeviceInfo {
   id: number;
@@ -15,24 +16,27 @@ export interface DeviceInfo {
 
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
-  private tokenKey = 'sync_device_token';
-  private deviceKey = 'sync_device_profile';
+  private http = inject(HttpClient);
+  private credential = inject(DeviceCredentialStorage);
+
+  private deviceKey = 'sync_device_profile'; // solo info visual NO sensible
   device$ = new BehaviorSubject<DeviceInfo | null>(null);
   ready$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClient) {}
+  /** ¿Ya se le preguntó el operador en este arranque en frío? (se reinicia al cerrar la app) */
+  operatorPromptedThisRun = false;
 
   async init() {
-    const t = await Preferences.get({ key: this.tokenKey });
-    if (!t.value) { this.ready$.next(true); return; }
+    const t = await this.credential.getToken();
+    if (!t) { this.ready$.next(true); return; }
     try {
       const me = await firstValueFrom(this.http.get<DeviceInfo>(`${environment.apiUrl}/device/me`));
       this.device$.next(me);
       await Preferences.set({ key: this.deviceKey, value: JSON.stringify(me) });
     } catch (e: any) {
       if (e?.status === 403 || e?.status === 401) {
-        // Device revocado o token inválido: limpiar credencial
-        await Preferences.remove({ key: this.tokenKey });
+        // Device revocado, transferido o token inválido: limpiar credencial
+        await this.credential.clearToken();
         await Preferences.remove({ key: this.deviceKey });
         this.device$.next(null);
       }
@@ -42,9 +46,10 @@ export class DeviceService {
 
   async activate(code: string) {
     const res = await firstValueFrom(this.http.post<{ token: string; device: DeviceInfo }>(`${environment.apiUrl}/device/activate`, { code }));
-    await Preferences.set({ key: this.tokenKey, value: res.token });
+    await this.credential.setToken(res.token);
     this.device$.next(res.device);
     await Preferences.set({ key: this.deviceKey, value: JSON.stringify(res.device) });
+    this.operatorPromptedThisRun = true; // la activación ya muestra la pantalla de operador
     return res.device;
   }
 
@@ -60,8 +65,7 @@ export class DeviceService {
   }
 
   async token(): Promise<string | null> {
-    const t = await Preferences.get({ key: this.tokenKey });
-    return t.value;
+    return this.credential.getToken();
   }
 
   async isActivated(): Promise<boolean> {
@@ -69,7 +73,7 @@ export class DeviceService {
   }
 
   async clear() {
-    await Preferences.remove({ key: this.tokenKey });
+    await this.credential.clearToken();
     await Preferences.remove({ key: this.deviceKey });
     this.device$.next(null);
   }

@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonInput, IonButton } from '@ionic/angular';
@@ -9,20 +9,20 @@ import { environment } from '@env/environment';
 @Component({
   selector: 'app-assignments',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonInput, IonButton],
+  imports: [FormsModule, IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonInput, IonButton],
   templateUrl: './assignments.page.html',
   styleUrls: ['./assignments.page.scss'],
 })
 export class AssignmentsPage implements OnInit {
+  private http = inject(HttpClient);
+  private toast = inject(ToastController);
+
   users = signal<any[]>([]);
   departments = signal<any[]>([]);
 
   newName = '';
   newCode = '';
-  newPin = '';
   newDeptId: any = null;
-
-  constructor(private http: HttpClient, private toast: ToastController) {}
 
   ngOnInit() {
     this.load();
@@ -34,17 +34,19 @@ export class AssignmentsPage implements OnInit {
   }
 
   async createUser() {
-    if (!this.newName.trim() || !this.newCode.trim() || !this.newPin.trim()) {
-      const t = await this.toast.create({ message: 'Completa nombre, código y PIN', duration: 2500, color: 'warning', position: 'bottom' });
+    if (!this.newName.trim() || this.newDeptId === null || this.newDeptId === '') {
+      const t = await this.toast.create({ message: 'Completa nombre y departamento', duration: 2500, color: 'warning', position: 'bottom' });
       await t.present();
       return;
     }
-    const deptId = this.newDeptId === '' || this.newDeptId === null ? null : Number(this.newDeptId);
-    this.http.post(`${environment.apiUrl}/admin/users`, { name: this.newName.trim(), employee_code: this.newCode.trim(), pin: this.newPin.trim(), department_id: deptId }).subscribe({
+    const deptId = Number(this.newDeptId);
+    const payload: any = { name: this.newName.trim(), department_id: deptId };
+    if (this.newCode.trim()) payload.employee_code = this.newCode.trim();
+    this.http.post(`${environment.apiUrl}/admin/users`, payload).subscribe({
       next: async () => {
         const t = await this.toast.create({ message: 'Empleado agregado', duration: 2500, color: 'success', position: 'bottom' });
         await t.present();
-        this.newName = ''; this.newCode = ''; this.newPin = ''; this.newDeptId = null;
+        this.newName = ''; this.newCode = ''; this.newDeptId = null;
         this.load();
       },
       error: async (e) => {

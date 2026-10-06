@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon, ToastController } from '@ionic/angular';
@@ -17,11 +17,16 @@ import { Channel } from '@core/models';
   styleUrls: ['./push-to-talk.page.scss']
 })
 export class PushToTalkPage implements OnInit, OnDestroy {
+  voice = inject(VoiceService);
+  private route = inject(ActivatedRoute);
+  private toast = inject(ToastController);
+  private http = inject(HttpClient);
+  private native = inject(NativeService);
+
   channel: Channel | null = null;
   private channelId = 0;
   private pttActive = false;
-
-  constructor(public voice: VoiceService, private route: ActivatedRoute, private toast: ToastController, private http: HttpClient, private native: NativeService) {}
+  private floorLostSub?: Subscription;
 
   async ngOnInit() {
     this.channelId = Number(this.route.snapshot.paramMap.get('id'));
@@ -32,6 +37,14 @@ export class PushToTalkPage implements OnInit, OnDestroy {
     } catch {
       this.channel = { id: this.channelId, name: `Canal ${this.channelId}`, type: 'private' };
     }
+
+    // Fail-safe del heartbeat: si se pierde el piso, el mic ya está apagado; avisar al operador.
+    this.floorLostSub = this.voice.floorLost$.subscribe(() => {
+      this.pttActive = false;
+      this.native.keepScreenOn(false);
+      this.toast.create({ message: 'Se perdió el control del canal. Dejaste de transmitir.', duration: 3000, color: 'warning', position: 'bottom' }).then(t => t.present());
+    });
+
     try {
       await this.voice.connect(this.channelId);
     } catch (e) {
@@ -41,6 +54,7 @@ export class PushToTalkPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.floorLostSub?.unsubscribe();
     this.native.unlockOrientation();
     this.native.keepScreenOn(false);
     this.voice.disconnect();

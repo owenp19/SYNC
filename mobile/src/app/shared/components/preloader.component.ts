@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-preloader',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="preloader">
       <img src="assets/branding/logos/sync_logo_horizontal_white.png" alt="SYNC">

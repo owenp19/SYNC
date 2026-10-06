@@ -62,8 +62,13 @@ class FloorControlService
         return DB::transaction(function () use ($channel, $deviceId, $transmissionId) {
             $locked = Channel::lockForUpdate()->find($channel->id) ?? $channel;
 
-            if ($locked->occupied_device_id !== $deviceId) return false;
-            if ($locked->floor_session_id !== null && $transmissionId !== null && $locked->floor_session_id !== $transmissionId) return false;
+            if ($locked->occupied_device_id !== $deviceId) {
+                return false;
+            }
+            // Si hay sesión de piso activa, la transmisión es obligatoria y debe coincidir.
+            if ($locked->floor_session_id !== null && $locked->floor_session_id !== $transmissionId) {
+                return false;
+            }
 
             $locked->update([
                 'occupied_device_id' => null,
@@ -92,8 +97,12 @@ class FloorControlService
 
             $this->expireIfStale($locked);
 
-            if ($locked->occupied_device_id !== $deviceId) return false;
-            if ($locked->floor_session_id !== null && $transmissionId !== null && $locked->floor_session_id !== $transmissionId) return false;
+            if ($locked->occupied_device_id !== $deviceId) {
+                return false;
+            }
+            if ($locked->floor_session_id !== null && $locked->floor_session_id !== $transmissionId) {
+                return false;
+            }
 
             $locked->update(['floor_expires_at' => now()->addSeconds(self::ttlSeconds())]);
 
@@ -104,8 +113,12 @@ class FloorControlService
     public function expireIfStale(Channel $locked): bool
     {
         $occupied = $locked->occupied_device_id !== null || $locked->occupied_by !== null;
-        if (! $occupied) return false;
-        if ($locked->floor_expires_at === null || $locked->floor_expires_at->isFuture()) return false;
+        if (! $occupied) {
+            return false;
+        }
+        if ($locked->floor_expires_at === null || $locked->floor_expires_at->isFuture()) {
+            return false;
+        }
 
         $previousDevice = $locked->occupied_device_id;
         $transmission = $locked->floor_session_id;

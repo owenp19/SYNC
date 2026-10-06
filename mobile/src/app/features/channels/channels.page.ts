@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonContent, IonIcon, IonMenu, IonMenuButton, IonButtons, IonButton, IonRefresher, IonRefresherContent } from '@ionic/angular';
@@ -16,9 +16,7 @@ interface ChannelCard extends ChannelDto {
 const META: Record<string, { description: string; icon: string; color: string }> = {
   'Recepción': { description: 'Atención al cliente y check-in', icon: 'business', color: '#0EA5E9' },
   'Mantenimiento': { description: 'Servicios técnicos y reparaciones', icon: 'construct', color: '#F59E0B' },
-  'Seguridad': { description: 'Vigilancia y monitoreo', icon: 'shield-checkmark', color: '#EF4444' },
   'Seguridad Interna': { description: 'Vigilancia y monitoreo', icon: 'shield-checkmark', color: '#EF4444' },
-  'Ama de llaves': { description: 'Gestión de habitaciones', icon: 'bed', color: '#14B8A6' },
   'Ama de Llaves': { description: 'Gestión de habitaciones', icon: 'bed', color: '#14B8A6' },
   'Emergencias': { description: 'Canal prioritario 24/7', icon: 'warning', color: '#DC2626' },
   'General': { description: 'Comunicación abierta del equipo', icon: 'globe', color: '#8B5CF6' },
@@ -32,11 +30,13 @@ const META: Record<string, { description: string; icon: string; color: string }>
   styleUrls: ['./channels.page.scss']
 })
 export class ChannelsPage implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private channelsService = inject(ChannelsService);
+  device = inject(DeviceService);
+
   channels$!: Observable<ChannelCard[]>;
   loadError$!: Observable<string | null>;
   private sub?: Subscription;
-
-  constructor(private router: Router, private channelsService: ChannelsService, public device: DeviceService) {}
 
   ngOnInit() {
     this.channelsService.startPolling();

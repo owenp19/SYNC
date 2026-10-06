@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * Login de empleado: employee_code + PIN.
+     * Login del panel de administración: email + password (solo role=admin).
      * El departamento y rol siempre salen del usuario autenticado, nunca del cliente.
      */
     public function login(Request $request)

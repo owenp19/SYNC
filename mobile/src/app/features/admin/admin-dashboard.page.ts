@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, AfterViewInit, inject } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -16,12 +16,16 @@ import { Observable } from 'rxjs';
   styleUrls: ['./admin-dashboard.page.scss'],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy, AfterViewInit {
+  private channelsService = inject(ChannelsService);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
   channels$!: Observable<ChannelDto[]>;
   events$!: Observable<any[]>;
   private statusChart?: Chart;
   private eventsChart?: Chart;
 
-  constructor(private channelsService: ChannelsService, private http: HttpClient, private auth: AuthService) {
+  constructor() {
     Chart.register(...registerables);
   }
 
@@ -77,13 +81,15 @@ export class AdminDashboardPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
+    this.channelsService.useAdminApi(); // dashboard: vista global con token de admin
     this.channelsService.startPolling();
     this.channels$ = this.channelsService.channels$;
-    this.events$ = this.http.get<any[]>(`${environment.apiUrl}/events`);
+    this.events$ = this.http.get<any[]>(`${environment.apiUrl}/admin/events`);
   }
 
   ngOnDestroy() {
     this.channelsService.stopPolling();
+    this.channelsService.useDeviceApi();
   }
 
   total(channels: ChannelDto[]) { return channels.length; }

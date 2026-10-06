@@ -23,17 +23,21 @@
       [class.denied]="(voice.floorState$ | async) === 'denied'">
       <span class="dot"></span>
       {{ (voice.floorState$ | async) === 'transmitting' ? 'EN VIVO' :
-         (voice.floorState$ | async) === 'requesting' ? 'SOLICITANDO' :
-         (voice.floorState$ | async) === 'denied' ? 'OCUPADO' : 'LIBRE' }}
+      (voice.floorState$ | async) === 'requesting' ? 'SOLICITANDO' :
+      (voice.floorState$ | async) === 'denied' ? 'OCUPADO' : 'LIBRE' }}
     </span>
   </div>
 
-  <div class="speaker-card" *ngIf="voice.activeSpeaker$ | async as speaker">
-    <span class="wave"><i></i><i></i><i></i></span>
-    <p>En vivo: <strong>{{ speaker }}</strong></p>
-  </div>
+  @if (voice.activeSpeaker$ | async; as speaker) {
+    <div class="speaker-card">
+      <span class="wave"><i></i><i></i><i></i></span>
+      <p>En vivo: <strong>{{ speaker }}</strong></p>
+    </div>
+  }
 
-  <p class="hint" *ngIf="(voice.floorState$ | async) === 'denied'">El canal está ocupado, intenta de nuevo en unos segundos.</p>
+  @if ((voice.floorState$ | async) === 'denied') {
+    <p class="hint">El canal está ocupado, intenta de nuevo en unos segundos.</p>
+  }
 
   <div class="ptt-zone">
     <button

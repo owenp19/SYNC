@@ -46,10 +46,12 @@ return new class extends Migration
         DB::statement('ALTER TABLE channel_permissions_new RENAME TO channel_permissions');
         try {
             DB::statement('CREATE UNIQUE INDEX channel_permissions_user_channel_unique ON channel_permissions (user_id, channel_id)');
-        } catch (\Throwable $e) {}
+        } catch (Throwable $e) {
+        }
         try {
             DB::statement('CREATE UNIQUE INDEX channel_permissions_dept_channel_unique ON channel_permissions (department_id, channel_id)');
-        } catch (\Throwable $e) {}
+        } catch (Throwable $e) {
+        }
 
         // communication_history: user_id pasa a nullable; agregamos device_id/operator_id
         Schema::create('communication_history_new', function (Blueprint $t) {

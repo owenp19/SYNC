@@ -53,46 +53,53 @@
     <h1>Canales</h1>
     <p class="subtitle">Selecciona un departamento para entrar al canal de voz.</p>
 
-    <label class="dept" *ngIf="device.device$ | async as d">
-      <span>{{ d.name }}</span>
-      <strong>{{ d.operator?.name || 'Sin operador' }} · {{ d.department }}</strong>
-    </label>
+    @if (device.device$ | async; as d) {
+      <label class="dept">
+        <span>{{ d.name }}</span>
+        <strong>{{ d.operator?.name || 'Sin operador' }} · {{ d.department }}</strong>
+      </label>
+    }
     <button class="change-operator" (click)="changeOperator()">Cambiar operador</button>
   </div>
 
-  <div class="alert" *ngIf="loadError$ | async as loadError">
-    <ion-icon name="warning-outline"></ion-icon>
-    <span>{{ loadError }}</span>
-  </div>
-
-  <ng-container *ngIf="channels$ | async as channels">
-    <div class="empty" *ngIf="channels.length === 0 && !(loadError$ | async)">
-      <ion-icon name="wifi-outline"></ion-icon>
-      <p>Cargando canales…</p>
+  @if (loadError$ | async; as loadError) {
+    <div class="alert">
+      <ion-icon name="warning-outline"></ion-icon>
+      <span>{{ loadError }}</span>
     </div>
+  }
 
+  @if (channels$ | async; as channels) {
+    @if (channels.length === 0 && (loadError$ | async) === null) {
+      <div class="empty">
+        <ion-icon name="wifi-outline"></ion-icon>
+        <p>Cargando canales…</p>
+      </div>
+    }
     <div class="channel-list">
-      <button class="channel-card" *ngFor="let c of channels; let i = index" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
-      <div class="icon-wrap" [style.background]="c.color + '1F'" [style.color]="c.color">
-        <ion-icon [name]="c.icon"></ion-icon>
-      </div>
-
-      <div class="channel-info">
-        <div class="name-row">
-          <strong>{{ c.name }}</strong>
-        </div>
-        <small>{{ c.description }}</small>
-        <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.type === 'emergency' && c.status !== 'busy'">
-          <span class="dot"></span>{{ statusLabel(c) }}
-        </span>
-        <small class="occupier" *ngIf="c.status === 'busy' && c.occupier_name">En uso por {{ c.occupier_name }}</small>
-      </div>
-
-      <span class="chevron-wrap">
-        <ion-icon name="chevron-forward"></ion-icon>
-      </span>
-    </button>
+      @for (c of channels; track c; let i = $index) {
+        <button class="channel-card" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
+          <div class="icon-wrap" [style.background]="c.color + '1F'" [style.color]="c.color">
+            <ion-icon [name]="c.icon"></ion-icon>
+          </div>
+          <div class="channel-info">
+            <div class="name-row">
+              <strong>{{ c.name }}</strong>
+            </div>
+            <small>{{ c.description }}</small>
+            <span class="status" [class.busy]="c.status === 'busy'" [class.emergency]="c.type === 'emergency' && c.status !== 'busy'">
+              <span class="dot"></span>{{ statusLabel(c) }}
+            </span>
+            @if (c.status === 'busy' && c.occupier_name) {
+              <small class="occupier">En uso por {{ c.occupier_name }}</small>
+            }
+          </div>
+          <span class="chevron-wrap">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </span>
+        </button>
+      }
     </div>
-  </ng-container>
+  }
 
 </ion-content>

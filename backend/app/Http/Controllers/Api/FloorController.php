@@ -29,7 +29,17 @@ class FloorController extends Controller
         $result = $this->floor->acquire($channel, $device->id, $operatorId);
 
         if ($result['ok']) {
-            $this->livekit->grantMicrophone("channel-{$channel->id}", "device-{$device->id}");
+            // Si LiveKit no puede conceder el micrófono, el Floor NO puede quedar ocupado:
+            // se revierte la adquisición para no bloquear el canal.
+            if (! $this->livekit->grantMicrophone("channel-{$channel->id}", "device-{$device->id}")) {
+                $this->floor->release($channel, $device->id, $result['transmission_id']);
+
+                return response()->json([
+                    'granted' => false,
+                    'message' => 'No se pudo habilitar el micrófono en el servidor de voz. Intenta de nuevo.',
+                    'transmission_id' => null,
+                ], 502);
+            }
         }
 
         return response()->json([

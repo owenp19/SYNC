@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonButton } from '@ionic/angular';
@@ -9,17 +9,18 @@ import { environment } from '@env/environment';
 @Component({
   selector: 'app-devices',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonButton],
+  imports: [FormsModule, IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonButton],
   templateUrl: './devices.page.html',
   styleUrls: ['./devices.page.scss'],
 })
 export class DevicesPage implements OnInit {
+  private http = inject(HttpClient);
+  private toast = inject(ToastController);
+
   devices = signal<any[]>([]);
   departments = signal<any[]>([]);
   newName = '';
   newDeptId: any = null;
-
-  constructor(private http: HttpClient, private toast: ToastController) {}
 
   ngOnInit() { this.load(); }
 
@@ -37,8 +38,23 @@ export class DevicesPage implements OnInit {
   }
 
   genCode(id: number) {
-    this.http.post<any>(`${environment.apiUrl}/admin/devices/${id}/code`, {}).subscribe(res => {
-      this.toast.create({ message: `Código: ${res.code}`, duration: 6000, color: 'success', position: 'bottom' }).then(t => t.present());
+    this.http.post<any>(`${environment.apiUrl}/admin/devices/${id}/code`, {}).subscribe({
+      next: res => {
+        this.toast.create({ message: `Código: ${res.code}`, duration: 6000, color: 'success', position: 'bottom' }).then(t => t.present());
+        this.load();
+      },
+      error: (e) => this.toast.create({ message: e?.error?.message ?? 'Error', duration: 4000, color: 'danger', position: 'bottom' }).then(t => t.present()),
+    });
+  }
+
+  /** RESET/TRANSFER: mata el token del teléfono actual y emite código nuevo de un solo uso. */
+  transfer(id: number) {
+    this.http.post<any>(`${environment.apiUrl}/admin/devices/${id}/reset`, {}).subscribe({
+      next: res => {
+        this.toast.create({ message: `Transferencia: nuevo código ${res.code} (el teléfono anterior dejó de funcionar)`, duration: 8000, color: 'success', position: 'bottom' }).then(t => t.present());
+        this.load();
+      },
+      error: (e) => this.toast.create({ message: e?.error?.message ?? 'Error', duration: 4000, color: 'danger', position: 'bottom' }).then(t => t.present()),
     });
   }
 

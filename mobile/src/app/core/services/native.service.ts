@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -12,9 +12,9 @@ import { ToastController } from '@ionic/angular';
 
 @Injectable({ providedIn: 'root' })
 export class NativeService {
-  private isNative = Capacitor.isNativePlatform();
+  private toast = inject(ToastController);
 
-  constructor(private toast: ToastController) {}
+  private isNative = Capacitor.isNativePlatform();
 
   /** Inicializa plugins seguros de ejecutar al arranque (con try/catch: nunca rompe la app). */
   async init() {
