@@ -16,6 +16,9 @@ const tasks = [
   // Scheduler: ejecuta el barrido de pisos expirados (floor:expire-stale cada 30s)
   { name: 'schedulr', cmd: 'npm run dev:scheduler', color: 'yellow' },
   { name: 'mobile', cmd: 'npm run dev:mobile', color: 'cyan' },
+  // Anuncio mDNS "SYNC-SERVER" para que los teléfonos encuentren el PC sin IP fija.
+  // (Para pruebas cambiando de Wi-Fi usa `npm run sync:server`: reinicia LiveKit al cambiar la IP.)
+  { name: 'discover', cmd: 'npm run sync:discover', color: 'green' },
 ];
 
 if (hasDocker) {

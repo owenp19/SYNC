@@ -32,6 +32,7 @@
     "@capacitor/screen-orientation": "^8.0.2",
     "@capacitor/status-bar": "8.0.3",
     "@capawesome/capacitor-keep-awake": "^0.1.2",
+    "@devioarts/capacitor-mdns": "0.1.0",
     "@ionic/angular": "^9.0.0",
     "chart.js": "^4.5.1",
     "ionicons": "^8.1.0",

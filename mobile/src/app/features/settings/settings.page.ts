@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonItem, IonLabel, IonToggle, IonNote } from '@ionic/angular';
 import { NativeService } from '@core/services/native.service';
@@ -6,7 +7,7 @@ import { NativeService } from '@core/services/native.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonItem, IonLabel, IonToggle, IonNote],
+  imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonItem, IonLabel, IonToggle, IonNote],
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
 })

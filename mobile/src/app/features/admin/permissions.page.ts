@@ -1,9 +1,9 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
-import { IonHeader, IonToolbar, IonContent, IonIcon, IonButtons, IonBackButton } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonContent, IonButtons, IonBackButton } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
-import { environment } from '@env/environment';
+import { ServerConnectionService } from '@core/services/server-connection.service';
 
 interface MatrixData {
   departments: { id: number; name: string }[];
@@ -18,11 +18,12 @@ interface MatrixData {
 @Component({
   selector: 'app-permissions',
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonContent, IonIcon, IonButtons, IonBackButton],
+  imports: [IonHeader, IonToolbar, IonContent, IonButtons, IonBackButton],
   templateUrl: './permissions.page.html',
   styleUrls: ['./permissions.page.scss'],
 })
 export class PermissionsPage implements OnInit {
+  private server = inject(ServerConnectionService);
   private http = inject(HttpClient);
   private toast = inject(ToastController);
 
@@ -33,7 +34,7 @@ export class PermissionsPage implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.http.get<MatrixData>(`${environment.apiUrl}/admin/permissions`).subscribe(res => {
+    this.http.get<MatrixData>(`${this.server.apiUrl}/admin/permissions`).subscribe(res => {
       this.departments.set(res.departments);
       this.channels.set(res.channels);
       const map = new Map<string, { can_listen: boolean; can_transmit: boolean }>();
@@ -55,7 +56,7 @@ export class PermissionsPage implements OnInit {
     if (field === 'can_transmit' && next.can_transmit) next.can_listen = true;
     if (field === 'can_listen' && !next.can_listen) next.can_transmit = false;
 
-    this.http.put(`${environment.apiUrl}/admin/permissions`, {
+    this.http.put(`${this.server.apiUrl}/admin/permissions`, {
       department_id: deptId, channel_id: channelId,
       can_listen: next.can_listen, can_transmit: next.can_transmit,
     }).subscribe({

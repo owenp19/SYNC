@@ -6,11 +6,15 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\FloorController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\VoiceController;
 use App\Models\AudioEvent;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// --- Descubrimiento LAN: health check público (sin auth, sin datos sensibles) ---
+Route::get('/health', HealthController::class);
 
 // --- Admin tradicional (email + password, role=admin) ---
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');

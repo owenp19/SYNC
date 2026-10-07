@@ -4,13 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Device;
+use App\Services\DeviceActivationCodeService;
+use App\Services\DeviceSessionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AdminDeviceController extends Controller
 {
+    public function __construct(
+        private DeviceSessionService $sessions,
+        private DeviceActivationCodeService $codes,
+    ) {}
+
     public function index()
     {
         return Device::with('department', 'currentOperator')->orderBy('name')->get()->map(fn ($d) => [
@@ -43,9 +48,9 @@ class AdminDeviceController extends Controller
     }
 
     /**
-     * Genera el código de activación (6 dígitos, 24h, un solo uso).
+     * Genera el código de activación (8 dígitos, 12 h, un solo uso, lookup único).
      * Solo para devices pendientes o revocados: para un device ACTIVO hay que
-     * usar reset() (RESET/TRANSFER), que además mata el token del teléfono anterior.
+     * usar reset() (RESET/TRANSFER), que además mata la sesión del teléfono anterior.
      */
     public function generateCode(Device $device)
     {
@@ -55,59 +60,67 @@ class AdminDeviceController extends Controller
             ], 422);
         }
 
-        $code = (string) random_int(100000, 999999);
-
-        $device->update([
-            'activation_token_hash' => Hash::make($code),
-            'activation_lookup' => DeviceController::codeLookup($code),
-            'activation_expires_at' => now()->addHours(24),
+        $issued = $this->codes->issue($device, [
             'status' => $device->status === 'revoked' ? 'pending' : $device->status,
         ]);
 
-        return response()->json(['code' => $code, 'expires_at' => $device->activation_expires_at]);
+        return response()->json($issued);
     }
 
     /**
      * RESET / TRANSFER DEVICE: mueve la identidad del device a otro teléfono.
-     * - Revoca TODOS los tokens existentes (el teléfono anterior deja de funcionar).
-     * - Limpia el operador del turno e invalida cualquier código anterior.
-     * - Emite un código nuevo de un solo uso y deja el device en estado pending.
+     * 1) Termina la sesión activa del teléfono anterior: pierde tokens, Floor,
+     *    micrófono y es expulsado de LiveKit; se limpia el operador del turno.
+     * 2) Emite un código nuevo de un solo uso (invalida cualquier código anterior)
+     *    y deja el device en estado pending.
      */
     public function reset(Device $device)
     {
-        $code = (string) random_int(100000, 999999);
-        $expiresAt = now()->addHours(24);
+        $this->sessions->terminateDeviceSession($device, 'device_reset');
 
-        DB::transaction(function () use ($device, $code, $expiresAt) {
-            $device->tokens()->delete();
-            $device->update([
-                'status' => 'pending',
-                'current_operator_id' => null,
-                'activation_token_hash' => Hash::make($code),
-                'activation_lookup' => DeviceController::codeLookup($code),
-                'activation_expires_at' => $expiresAt,
-                'activated_at' => null,
-                'revoked_at' => null,
-            ]);
-        });
+        $issued = $this->codes->issue($device, [
+            'status' => 'pending',
+            'current_operator_id' => null,
+            'activated_at' => null,
+            'revoked_at' => null,
+        ]);
 
-        return response()->json(['code' => $code, 'expires_at' => $expiresAt]);
+        return response()->json($issued);
     }
 
+    /**
+     * Revocación inmediata: primero el estado (nuevas peticiones → 403) y luego
+     * la terminación de la sesión activa (tokens, Floor, micrófono, LiveKit).
+     */
     public function revoke(Device $device)
     {
-        $device->update(['status' => 'revoked', 'revoked_at' => now()]);
-        // Borra credenciales existentes → revocación inmediata
-        $device->tokens()->delete();
+        $device->update([
+            'status' => 'revoked',
+            'revoked_at' => now(),
+            'activation_token_hash' => null,
+            'activation_lookup' => null,
+            'activation_expires_at' => null,
+        ]);
+
+        $this->sessions->terminateDeviceSession($device, 'device_revoked');
 
         return response()->json(['message' => 'Dispositivo revocado']);
     }
 
+    /**
+     * Reasignación de departamento: se cambia el departamento y después se corta
+     * la sesión de voz anterior (Floor, micrófono, salas LiveKit, operador).
+     * La credencial Sanctum se conserva: el device vuelve a conectar y obtiene
+     * tokens de voz según los permisos del NUEVO departamento.
+     */
     public function reassign(Request $r, Device $device)
     {
         $data = $r->validate(['department_id' => 'required|integer|exists:departments,id']);
+
         $device->update(['department_id' => $data['department_id'], 'current_operator_id' => null]);
 
-        return response()->json($device->load('department'));
+        $this->sessions->terminateDeviceSession($device, 'device_reassigned', revokeTokens: false);
+
+        return response()->json($device->fresh()->load('department'));
     }
 }

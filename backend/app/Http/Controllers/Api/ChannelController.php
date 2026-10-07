@@ -56,8 +56,11 @@ class ChannelController extends Controller
 
     private function payload(Channel $c): array
     {
-        // Solo recargar si la expiración modificó el canal (evita 2 queries por canal libre).
-        if ($this->floor->expireIfStale($c)) {
+        // Pre-chequeo sin bloqueo; la expiración real relee la fila con lockForUpdate
+        // y solo libera si sigue vencida. Si parecía vencido, recargar SIEMPRE:
+        // otro device pudo adquirir el canal y el modelo en memoria está obsoleto.
+        if ($this->floor->looksStale($c)) {
+            $this->floor->expireIfStale($c->id);
             $c->refresh();
             $c->load('occupier:id,name', 'occupiedDevice:id,name');
         }

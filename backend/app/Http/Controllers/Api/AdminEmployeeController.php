@@ -7,13 +7,21 @@ use App\Models\Channel;
 use App\Models\ChannelPermission;
 use App\Models\Department;
 use App\Models\User;
+use App\Services\DepartmentPermissionPolicy;
+use App\Services\DeviceSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AdminEmployeeController extends Controller
 {
+    public function __construct(
+        private DepartmentPermissionPolicy $policy,
+        private DeviceSessionService $sessions,
+    ) {}
+
     public function employees()
     {
         return User::with('department')->orderBy('name')->get()->map(fn ($u) => [
@@ -57,12 +65,14 @@ class AdminEmployeeController extends Controller
                 'status' => 'available',
             ]);
 
-            $this->syncPermissions($user);
-
             return response()->json($user->load('department'), 201);
         });
     }
 
+    /**
+     * Actualiza un empleado (operador). Cambiar su departamento NO toca
+     * channel_permissions: los permisos pertenecen al departamento, no a la persona.
+     */
     public function updateEmployee(Request $r, User $user)
     {
         $data = $r->validate([
@@ -72,17 +82,9 @@ class AdminEmployeeController extends Controller
             'role' => 'sometimes|in:admin,employee',
         ]);
 
-        return DB::transaction(function () use ($user, $data) {
-            $departmentChanged = array_key_exists('department_id', $data) && $data['department_id'] !== $user->department_id;
+        $user->update($data);
 
-            $user->update($data);
-
-            if ($departmentChanged) {
-                $this->syncPermissions($user->refresh());
-            }
-
-            return response()->json($user->load('department'));
-        });
+        return response()->json($user->load('department'));
     }
 
     /**
@@ -103,7 +105,16 @@ class AdminEmployeeController extends Controller
         ]);
     }
 
-    /** Actualiza (o crea) una celda de la matriz de permisos de un departamento. */
+    /**
+     * Actualiza (o crea) una celda de la matriz de permisos de un departamento.
+     *
+     * Regla de negocio (aplicada en backend, no solo en Angular):
+     * can_transmit = true requiere can_listen = true → si no, 422.
+     *
+     * Los cambios se aplican EN CALIENTE: si se retira transmitir se termina el
+     * Floor activo del departamento en ese canal; si se retira escuchar, además
+     * se expulsa a sus devices de la sala LiveKit.
+     */
     public function updatePermission(Request $r)
     {
         $data = $r->validate([
@@ -113,37 +124,29 @@ class AdminEmployeeController extends Controller
             'can_transmit' => 'required|boolean',
         ]);
 
+        $canListen = filter_var($data['can_listen'], FILTER_VALIDATE_BOOLEAN);
+        $canTransmit = filter_var($data['can_transmit'], FILTER_VALIDATE_BOOLEAN);
+
+        if ($canTransmit && ! $canListen) {
+            throw ValidationException::withMessages([
+                'can_transmit' => 'Para transmitir en un canal el departamento también debe poder escucharlo.',
+            ]);
+        }
+
         $perm = ChannelPermission::updateOrCreate(
             ['department_id' => $data['department_id'], 'channel_id' => $data['channel_id']],
-            ['can_listen' => $data['can_listen'], 'can_transmit' => $data['can_transmit']]
+            ['can_listen' => $canListen, 'can_transmit' => $canTransmit]
         );
+
+        $this->sessions->enforceDepartmentPermission((int) $data['department_id'], (int) $data['channel_id'], $canListen, $canTransmit);
 
         return response()->json($perm);
     }
 
     /**
-     * Permisos consistentes tras cambiar de departamento:
-     * escuchar/transmitir en su canal de departamento y en canales generales.
+     * Crea un departamento con su canal privado y sus permisos iniciales
+     * (propio canal + canales generales/emergencia, según DepartmentPermissionPolicy).
      */
-    private function syncPermissions(User $user): void
-    {
-        $user->load('department');
-        $channelIds = collect();
-
-        if ($user->department?->channel_id) {
-            $channelIds->push($user->department->channel_id);
-        }
-        $generals = Channel::whereIn('type', ['general', 'emergency'])->pluck('id');
-        $channelIds = $channelIds->merge($generals)->unique()->filter();
-
-        foreach ($channelIds as $channelId) {
-            ChannelPermission::updateOrCreate(
-                ['department_id' => $user->department_id, 'channel_id' => $channelId],
-                ['can_listen' => true, 'can_transmit' => true]
-            );
-        }
-    }
-
     public function createDepartment(Request $r)
     {
         $data = $r->validate(['name' => 'required|string|max:255|unique:departments,name']);
@@ -151,6 +154,8 @@ class AdminEmployeeController extends Controller
         return DB::transaction(function () use ($data) {
             $channel = Channel::create(['name' => $data['name'], 'type' => 'private']);
             $dept = Department::create(['name' => $data['name'], 'channel_id' => $channel->id]);
+
+            $this->policy->applyDefaults($dept);
 
             return response()->json($dept->load('channel'), 201);
         });
@@ -175,29 +180,10 @@ class AdminEmployeeController extends Controller
             Department::create(['name' => $name, 'channel_id' => $channel->id]);
             $created++;
         }
-        $this->seedDefaultPermissions();
+        foreach (Department::all() as $dept) {
+            $this->policy->applyDefaults($dept);
+        }
 
         return response()->json(['created' => $created, 'departments' => Department::all()]);
-    }
-
-    /**
-     * Permisos por defecto de cada departamento: su canal privado
-     * (escuchar + transmitir) y los canales generales/de emergencia.
-     */
-    private function seedDefaultPermissions(): void
-    {
-        $generalIds = Channel::whereIn('type', ['general', 'emergency'])->pluck('id');
-        foreach (Department::all() as $dept) {
-            $ids = collect($generalIds);
-            if ($dept->channel_id) {
-                $ids->push($dept->channel_id);
-            }
-            foreach ($ids->unique() as $channelId) {
-                ChannelPermission::firstOrCreate(
-                    ['department_id' => $dept->id, 'channel_id' => $channelId],
-                    ['can_listen' => true, 'can_transmit' => true]
-                );
-            }
-        }
     }
 }

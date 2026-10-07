@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
 import { IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonIcon } from '@ionic/angular';
-import { environment } from '@env/environment';
+import { ServerConnectionService } from '@core/services/server-connection.service';
 
 @Component({
   selector: 'app-manage',
@@ -14,6 +14,7 @@ import { environment } from '@env/environment';
   styleUrls: ['./manage.page.scss'],
 })
 export class ManagePage {
+  private server = inject(ServerConnectionService);
   private http = inject(HttpClient);
   private toast = inject(ToastController);
 
@@ -23,7 +24,7 @@ export class ManagePage {
 
   async createDepartment() {
     if (!this.deptName.trim()) return;
-    this.http.post(`${environment.apiUrl}/admin/departments`, { name: this.deptName.trim() }).subscribe({
+    this.http.post(`${this.server.apiUrl}/admin/departments`, { name: this.deptName.trim() }).subscribe({
       next: async () => {
         const t = await this.toast.create({ message: `Departamento "${this.deptName}" creado`, duration: 2500, color: 'success', position: 'bottom' });
         await t.present();
@@ -37,7 +38,7 @@ export class ManagePage {
   }
 
   async seedDepartments() {
-    this.http.post(`${environment.apiUrl}/admin/departments/seed`, {}).subscribe({
+    this.http.post(`${this.server.apiUrl}/admin/departments/seed`, {}).subscribe({
       next: async (res: any) => {
         const t = await this.toast.create({ message: `${res.created} departamentos creados`, duration: 2500, color: 'success', position: 'bottom' });
         await t.present();
@@ -51,7 +52,7 @@ export class ManagePage {
 
   async createChannel() {
     if (!this.channelName.trim()) return;
-    this.http.post(`${environment.apiUrl}/admin/channels`, { name: this.channelName.trim(), type: this.channelType }).subscribe({
+    this.http.post(`${this.server.apiUrl}/admin/channels`, { name: this.channelName.trim(), type: this.channelType }).subscribe({
       next: async () => {
         const t = await this.toast.create({ message: `Canal "${this.channelName}" creado`, duration: 2500, color: 'success', position: 'bottom' });
         await t.present();

@@ -1,0 +1,58 @@
+<ion-header class="settings-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/channels" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Diagnóstico de red</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="diag-page" fullscreen>
+  <div class="card">
+    <div class="row"><span>Servidor</span><strong>{{ mode() === 'manual' ? 'MANUAL' : 'AUTO' }}</strong></div>
+    <div class="row"><span>Servidor detectado</span><strong>{{ endpoint()?.host ?? '—' }}</strong></div>
+    <div class="row"><span>API</span><strong [class.ok]="status() === 'CONNECTED'">{{ apiLabel() }}</strong></div>
+    <div class="row"><span>LiveKit</span><strong [class.ok]="livekitState() === 'ok'">{{ livekitLabel() }}</strong></div>
+    <div class="row"><span>Puertos</span><strong>{{ endpoint() ? endpoint()!.apiPort + ' / ' + endpoint()!.livekitPort : '—' }}</strong></div>
+    <div class="row"><span>Server ID</span><strong class="mono">{{ endpoint()?.serverId ?? '—' }}</strong></div>
+    <div class="row"><span>Server ID esperado</span><strong class="mono">{{ server.expectedId ?? '(sin vincular)' }}</strong></div>
+  </div>
+
+  @if (status() === 'SERVER_NOT_FOUND' && !mismatch()) {
+    <p class="note">
+      No se encontró el servidor SYNC en esta red. Verifica que el teléfono y el computador estén en una red
+      que permita comunicación entre dispositivos (sin aislamiento de clientes / AP isolation) y que el
+      computador tenga en marcha <code>npm run sync:server</code>.
+    </p>
+  }
+
+  @if (mismatch(); as m) {
+    <div class="card warn">
+      <p>Se encontró otro servidor SYNC distinto al vinculado a este dispositivo.</p>
+      <div class="row"><span>Encontrado</span><strong>{{ m.found.host }}</strong></div>
+      <div class="row"><span>Server ID</span><strong class="mono">{{ m.found.serverId }}</strong></div>
+      <button class="btn danger" (click)="changeServer()">Cambiar servidor</button>
+    </div>
+  }
+
+  <div class="actions">
+    <button class="btn" [disabled]="searching()" (click)="searchAgain()">
+      {{ searching() ? 'Buscando…' : 'Buscar servidor nuevamente' }}
+    </button>
+    <button class="btn secondary" (click)="showManual.set(!showManual())">Configuración manual</button>
+  </div>
+
+  @if (showManual()) {
+    <div class="card">
+      <p class="small">Respaldo técnico temporal. AUTO es el modo recomendado.</p>
+      <label>Host / IP<input type="text" inputmode="decimal" [(ngModel)]="manualHost" placeholder="192.168.1.37"></label>
+      <label>API Port<input type="number" [(ngModel)]="manualApiPort"></label>
+      <label>LiveKit Port<input type="number" [(ngModel)]="manualLivekitPort"></label>
+      <button class="btn" [disabled]="searching()" (click)="connectManual()">Conectar</button>
+      @if (pendingMismatchId(); as other) {
+        <p class="small warn-text">Ese servidor es otra instalación SYNC ({{ other }}).</p>
+        <button class="btn danger" (click)="connectManual(true)">Usar este servidor de todas formas</button>
+      }
+    </div>
+  }
+</ion-content>

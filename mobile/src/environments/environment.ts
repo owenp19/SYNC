@@ -1,23 +1,21 @@
-// En desarrollo usamos el mismo host desde el que se sirve la app:
-// - En el navegador del PC: http://localhost:8000
-// - Desde el servidor de `ng serve` en la LAN: apunta a la IP del PC
-// - En la APK nativa (Capacitor): caemos a la IP de la LAN (cámbiala al cambiar de red)
-import { Capacitor } from '@capacitor/core';
-
-const LAN_IP = '10.156.185.51';
-const browserHost = typeof window !== 'undefined' && window.location.hostname
-  ? window.location.hostname
-  : '';
-
-const HOST = Capacitor.isNativePlatform()
-  ? LAN_IP
-  : (browserHost || 'localhost');
-
+// SIN IPs fijas: la dirección del servidor SYNC (el PC de desarrollo en la LAN)
+// se descubre en tiempo de ejecución con mDNS/DNS-SD y se valida con
+// GET /api/health. Ver ServerConnectionService y README
+// ("DESARROLLO LOCAL CON PC COMO SERVIDOR").
 export const environment = {
   production: false,
-  apiUrl: `http://${HOST}:8000/api`,
-  socketUrl: `http://${HOST}:8000`,
-  livekitUrl: `ws://${HOST}:7880`,
-  livekitTokenEndpoint: `http://${HOST}:8000/api/voice/token`
+  server: {
+    /** Tipo de servicio DNS-SD anunciado por `npm run sync:discover`. */
+    serviceType: '_sync._tcp.',
+    /** Puertos por defecto si el anuncio no los trae (Android NSD no expone TXT). */
+    defaultApiPort: 8000,
+    defaultLivekitPort: 7880,
+    /** Versión de protocolo que esta app entiende (debe coincidir con /api/health). */
+    protocolVersion: 1,
+    /** LAN de desarrollo: HTTP/WS sin TLS (Android lo permite solo en builds debug). */
+    apiScheme: 'http',
+    livekitScheme: 'ws',
+    /** Logs de diagnóstico de conexión (nunca incluyen tokens ni claves). */
+    debugLogs: true,
+  },
 };
-

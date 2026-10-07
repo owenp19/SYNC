@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { IonHeader, IonToolbar, IonContent, IonIcon, IonItem, IonLabel, IonSelect, IonSelectOption, IonButtons, IonBackButton, IonInput, IonButton } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
-import { environment } from '@env/environment';
+import { ServerConnectionService } from '@core/services/server-connection.service';
 
 @Component({
   selector: 'app-assignments',
@@ -14,6 +14,7 @@ import { environment } from '@env/environment';
   styleUrls: ['./assignments.page.scss'],
 })
 export class AssignmentsPage implements OnInit {
+  private server = inject(ServerConnectionService);
   private http = inject(HttpClient);
   private toast = inject(ToastController);
 
@@ -29,8 +30,8 @@ export class AssignmentsPage implements OnInit {
   }
 
   load() {
-    this.http.get<any[]>(`${environment.apiUrl}/admin/users`).subscribe(u => this.users.set(u));
-    this.http.get<any[]>(`${environment.apiUrl}/admin/departments`).subscribe(d => this.departments.set(d));
+    this.http.get<any[]>(`${this.server.apiUrl}/admin/users`).subscribe(u => this.users.set(u));
+    this.http.get<any[]>(`${this.server.apiUrl}/admin/departments`).subscribe(d => this.departments.set(d));
   }
 
   async createUser() {
@@ -42,7 +43,7 @@ export class AssignmentsPage implements OnInit {
     const deptId = Number(this.newDeptId);
     const payload: any = { name: this.newName.trim(), department_id: deptId };
     if (this.newCode.trim()) payload.employee_code = this.newCode.trim();
-    this.http.post(`${environment.apiUrl}/admin/users`, payload).subscribe({
+    this.http.post(`${this.server.apiUrl}/admin/users`, payload).subscribe({
       next: async () => {
         const t = await this.toast.create({ message: 'Empleado agregado', duration: 2500, color: 'success', position: 'bottom' });
         await t.present();
@@ -62,7 +63,7 @@ export class AssignmentsPage implements OnInit {
 
   changeDepartment(user: any, ev: any) {
     const deptId = ev.detail.value === '' ? null : ev.detail.value;
-    this.http.patch(`${environment.apiUrl}/admin/users/${user.id}/department`, { department_id: deptId }).subscribe(() => {
+    this.http.patch(`${this.server.apiUrl}/admin/users/${user.id}/department`, { department_id: deptId }).subscribe(() => {
       user.department_id = deptId;
     });
   }

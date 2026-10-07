@@ -25,6 +25,8 @@ export class NativeService {
       }
     } catch (e) { console.warn('StatusBar', e); }
 
+    // Cambios de red: solo un aviso breve. La reconexión con el servidor SYNC
+    // (redescubrimiento, LiveKit, Floor) la gestiona ServerConnectionService.
     Network.addListener('networkStatusChange', async (status) => {
       const msg = status.connected ? 'Conexión restaurada' : 'Sin conexión a internet';
       const t = await this.toast.create({ message: msg, duration: 2500, color: status.connected ? 'success' : 'danger', position: 'bottom' });

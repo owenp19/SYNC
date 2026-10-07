@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Seed Admin Password
+    |--------------------------------------------------------------------------
+    |
+    | Initial password for the seeded administrator. Required in production:
+    | DatabaseSeeder refuses to create the admin with a known fallback there.
+    |
+    */
+
+    'seed_admin_password' => env('SEED_ADMIN_PASSWORD'),
+
 ];

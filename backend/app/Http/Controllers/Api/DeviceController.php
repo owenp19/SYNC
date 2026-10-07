@@ -91,6 +91,8 @@ class DeviceController extends Controller
 
         $device = $request->user();
 
+        $data['operator_id'] ??= null;
+
         if ($data['operator_id']) {
             $op = User::find($data['operator_id']);
             if (! $op || $op->department_id !== $device->department_id || $op->role !== 'employee' || ! $op->active) {

@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models';
-import { environment } from '@env/environment';
+import { ServerConnectionService } from '../services/server-connection.service';
 
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -18,8 +18,9 @@ export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const http = inject(HttpClient);
+  const server = inject(ServerConnectionService);
   if (!auth.isAuthenticated || !auth.token) return router.createUrlTree(['/auth/login']);
-  return http.get<User>(`${environment.apiUrl}/auth/me`).pipe(
+  return http.get<User>(`${server.apiUrl}/auth/me`).pipe(
     map(u => (u.role === 'admin' ? true : router.createUrlTree(['/channels']))),
     catchError(() => of(router.createUrlTree(['/auth/login'])))
   );

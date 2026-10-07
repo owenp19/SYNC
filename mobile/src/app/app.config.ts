@@ -3,9 +3,11 @@ import { provideRouter } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideIonicAngular } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowForwardOutline, bed, business, chevronForward, construct, globe, gridOutline, informationCircleOutline, lockClosed, lockClosedOutline, mailOutline, menuOutline, mic, people, peopleOutline, personAddOutline, personCircleOutline, addCircleOutline, pulseOutline, settingsOutline, shieldCheckmark, warning, warningOutline, wifiOutline } from 'ionicons/icons';
+import { arrowForwardOutline, bed, business, chevronForward, construct, globe, gridOutline, informationCircleOutline, lockClosed, lockClosedOutline, mailOutline, menuOutline, mic, people, peopleOutline, personAddOutline, personCircleOutline, addCircleOutline, pulseOutline, settingsOutline, shieldCheckmark, warning, warningOutline, wifiOutline, refreshOutline, cloudOfflineOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { ConnectivityInterceptor } from './core/interceptors/connectivity.interceptor';
+import { LocalServerDiscoveryService, MdnsLocalServerDiscoveryService } from './core/services/local-server-discovery.service';
 import { NativeService } from './core/services/native.service';
 import { DeviceCredentialStorage, SyncDeviceCredentialStorage } from './core/services/device-credential.storage';
 import { APP_INITIALIZER } from '@angular/core';
@@ -35,6 +37,9 @@ addIcons({
   'people-outline': peopleOutline,
   'add-circle-outline': addCircleOutline,
   'person-add-outline': personAddOutline,
+  'refresh-outline': refreshOutline,
+  'cloud-offline-outline': cloudOfflineOutline,
+  'checkmark-circle-outline': checkmarkCircleOutline,
 });
 
 export const appConfig: ApplicationConfig = {
@@ -44,7 +49,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ConnectivityInterceptor, multi: true },
     { provide: DeviceCredentialStorage, useClass: SyncDeviceCredentialStorage },
+    { provide: LocalServerDiscoveryService, useExisting: MdnsLocalServerDiscoveryService },
     {
       provide: APP_INITIALIZER,
       useFactory: (native: NativeService) => () => native.init(),

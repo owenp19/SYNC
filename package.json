@@ -10,9 +10,16 @@
     "dev:scheduler": "cd backend && php artisan schedule:work",
     "dev:mobile": "cd mobile && npm start",
     "build:mobile": "cd mobile && npm run build",
-    "sync:android": "cd mobile && npx cap sync android"
+    "sync:android": "cd mobile && npx cap sync android",
+    "sync:server": "node scripts/sync-server.js",
+    "sync:discover": "node scripts/sync-discover.js",
+    "sync:laravel": "cd backend && php artisan serve --host=0.0.0.0 --port=8000",
+    "test:scripts": "node --test scripts/lib/lan.test.js"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "multicast-dns": "7.2.5"
   }
 }

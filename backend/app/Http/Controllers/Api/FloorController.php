@@ -29,14 +29,14 @@ class FloorController extends Controller
         $result = $this->floor->acquire($channel, $device->id, $operatorId);
 
         if ($result['ok']) {
-            // Si LiveKit no puede conceder el micrófono, el Floor NO puede quedar ocupado:
-            // se revierte la adquisición para no bloquear el canal.
-            if (! $this->livekit->grantMicrophone("channel-{$channel->id}", "device-{$device->id}")) {
+            // Si LiveKit no puede conceder el micrÃ³fono, el Floor NO puede quedar ocupado:
+            // se revierte la adquisiciÃ³n para no bloquear el canal.
+            if (! $this->livekit->grantMicrophone(LiveKitPermissionService::roomName($channel->id), LiveKitPermissionService::identity($device->id))) {
                 $this->floor->release($channel, $device->id, $result['transmission_id']);
 
                 return response()->json([
                     'granted' => false,
-                    'message' => 'No se pudo habilitar el micrófono en el servidor de voz. Intenta de nuevo.',
+                    'message' => 'No se pudo habilitar el micrÃ³fono en el servidor de voz. Intenta de nuevo.',
                     'transmission_id' => null,
                 ], 502);
             }
@@ -55,7 +55,7 @@ class FloorController extends Controller
         $ok = $this->floor->release($channel, $device->id, $request->input('transmission_id'));
 
         if ($ok) {
-            $this->livekit->revokeMicrophone("channel-{$channel->id}", "device-{$device->id}");
+            $this->livekit->revokeMicrophone(LiveKitPermissionService::roomName($channel->id), LiveKitPermissionService::identity($device->id));
         }
 
         return response()->json(['message' => $ok ? 'Canal libre.' : 'No posees el piso de este canal.'], $ok ? 200 : 409);
@@ -70,7 +70,7 @@ class FloorController extends Controller
             return response()->json(['message' => 'ok']);
         }
 
-        $this->livekit->revokeMicrophone("channel-{$channel->id}", "device-{$device->id}");
+        $this->livekit->revokeMicrophone(LiveKitPermissionService::roomName($channel->id), LiveKitPermissionService::identity($device->id));
 
         return response()->json(['message' => 'No posees el piso de este canal.'], 409);
     }

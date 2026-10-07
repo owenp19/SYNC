@@ -15,7 +15,10 @@ class LiveKitTokenService
         $identity = "device-{$userId}";
         $options->setIdentity($identity);
         $options->setName($userName);
-        $options->setTtl(14400);
+        // TTL corto: el token solo sirve para ENTRAR a la sala. Una vez conectado,
+        // LiveKit renueva la sesión por sí mismo; así un device revocado/expulsado
+        // no puede reutilizar un JWT viejo para volver a entrar durante horas.
+        $options->setTtl(600);
 
         $grant = new VideoGrant;
         $grant->setRoomName("channel-{$channelId}");

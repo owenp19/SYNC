@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, AfterViewInit, inject } from '@angular/co
 import { Chart, registerables } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '@env/environment';
+import { ServerConnectionService } from '@core/services/server-connection.service';
 import { IonHeader, IonToolbar, IonContent, IonIcon, IonMenu, IonMenuButton, IonButtons } from '@ionic/angular';
 import { ChannelsService, ChannelDto } from '@core/services/channels.service';
 import { AuthService } from '@core/services/auth.service';
@@ -16,6 +16,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./admin-dashboard.page.scss'],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy, AfterViewInit {
+  private server = inject(ServerConnectionService);
   private channelsService = inject(ChannelsService);
   private http = inject(HttpClient);
   private auth = inject(AuthService);
@@ -84,7 +85,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy, AfterViewInit {
     this.channelsService.useAdminApi(); // dashboard: vista global con token de admin
     this.channelsService.startPolling();
     this.channels$ = this.channelsService.channels$;
-    this.events$ = this.http.get<any[]>(`${environment.apiUrl}/admin/events`);
+    this.events$ = this.http.get<any[]>(`${this.server.apiUrl}/admin/events`);
   }
 
   ngOnDestroy() {

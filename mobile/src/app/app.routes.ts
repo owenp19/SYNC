@@ -10,6 +10,10 @@ export const routes: Routes = [
   { path: '', redirectTo: 'welcome', pathMatch: 'full' },
   { path: 'auth/login', loadComponent: () => import('./features/auth/login.page').then(m => m.LoginPage) },
   { path: 'channels', canActivate: [deviceGuard], loadComponent: () => import('./features/channels/channels.page').then(m => m.ChannelsPage) },
+  // Pantalla técnica de red: SIN guard porque debe funcionar justamente cuando
+  // no hay servidor (el login admin necesita servidor). Solo muestra/ajusta dónde
+  // está SYNC; no concede identidad, permisos ni acceso administrativo.
+  { path: 'network', loadComponent: () => import('./features/network/network-diagnostics.page').then(m => m.NetworkDiagnosticsPage) },
   { path: 'settings', canActivate: [adminGuard], loadComponent: () => import('./features/settings/settings.page').then(m => m.SettingsPage) },
   { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin-dashboard.page').then(m => m.AdminDashboardPage) },
   { path: 'admin/assignments', canActivate: [adminGuard], loadComponent: () => import('./features/admin/assignments.page').then(m => m.AssignmentsPage) },

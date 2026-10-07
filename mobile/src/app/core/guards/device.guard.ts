@@ -11,8 +11,9 @@ export const deviceGuard: CanActivateFn = async (route) => {
 
   // En cada arranque en frío, al entrar a los canales, preguntar (opcionalmente)
   // quién usa el dispositivo. NO es login: sin PIN ni contraseña y se puede saltar.
+  // La bandera NO se marca aquí: solo OperatorPage la marca cuando el trabajador
+  // elige un operador o pulsa "Continuar sin operador".
   if (route.routeConfig?.path === 'channels' && !device.operatorPromptedThisRun) {
-    device.operatorPromptedThisRun = true;
     return router.createUrlTree(['/operator']);
   }
   return true;

@@ -15,6 +15,7 @@ use App\Services\LiveKitPermissionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Tests\Support\FakeLiveKitPermissionService;
 use Tests\TestCase;
 
 class SyncMvpTest extends TestCase
@@ -43,18 +44,7 @@ class SyncMvpTest extends TestCase
 
         // LiveKit no corre en tests: el servicio de permisos se simula con éxito.
         // Los tests que necesitan un fallo de LiveKit re-bindean su propio fake.
-        $this->app->instance(LiveKitPermissionService::class, new class extends LiveKitPermissionService
-        {
-            public function grantMicrophone(string $roomName, string $identity): bool
-            {
-                return true;
-            }
-
-            public function revokeMicrophone(string $roomName, string $identity): bool
-            {
-                return true;
-            }
-        });
+        $this->app->instance(LiveKitPermissionService::class, new FakeLiveKitPermissionService);
 
         $this->recepcion = Channel::create(['name' => 'Recepción', 'type' => 'private']);
         $this->seguridadCh = Channel::create(['name' => 'Seguridad', 'type' => 'private']);

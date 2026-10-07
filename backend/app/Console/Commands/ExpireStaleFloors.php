@@ -14,16 +14,16 @@ class ExpireStaleFloors extends Command
 
     public function handle(FloorControlService $floor): int
     {
-        $stale = Channel::whereNotNull('floor_expires_at')
+        $staleIds = Channel::whereNotNull('floor_expires_at')
             ->where('floor_expires_at', '<=', now())
             ->where(fn ($q) => $q->whereNotNull('occupied_device_id')->orWhereNotNull('occupied_by'))
-            ->get();
+            ->pluck('id');
 
         $released = 0;
-        foreach ($stale as $channel) {
-            // expireIfStale: libera el canal, cierra CommunicationHistory,
-            // registra el evento floor_expired y revoca el mic en LiveKit.
-            if ($floor->expireIfStale($channel)) {
+        foreach ($staleIds as $channelId) {
+            // Variante segura: relee la fila con lockForUpdate y solo libera si
+            // sigue vencida (un device pudo adquirir el canal tras la consulta).
+            if ($floor->expireIfStale((int) $channelId)) {
                 $released++;
             }
         }
