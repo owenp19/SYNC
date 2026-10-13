@@ -47,7 +47,6 @@ class FloorControlService
             $locked->update([
                 'occupied_device_id' => $deviceId,
                 'occupied_operator_id' => $operatorId,
-                'occupied_by' => null, // obsoleto: la ocupación se define por occupied_device_id
                 'floor_session_id' => $transmissionId,
                 'floor_expires_at' => now()->addSeconds(self::ttlSeconds()),
             ]);
@@ -208,7 +207,6 @@ class FloorControlService
         $locked->update([
             'occupied_device_id' => null,
             'occupied_operator_id' => null,
-            'occupied_by' => null,
             'floor_session_id' => null,
             'floor_expires_at' => null,
         ]);
