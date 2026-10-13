@@ -19,19 +19,19 @@
       <thead>
         <tr>
           <th class="channel-col">Canal</th>
-          @for (d of departments(); track d) {
+          @for (d of departments(); track d.id) {
             <th>{{ d.name }}</th>
           }
         </tr>
       </thead>
       <tbody>
-        @for (c of channels(); track c) {
+        @for (c of channels(); track c.id) {
           <tr>
             <td class="channel-col">
               <strong>{{ c.name }}</strong>
               <small>{{ c.type }}</small>
             </td>
-            @for (d of departments(); track d) {
+            @for (d of departments(); track d.id) {
               <td>
                 <div class="cell">
                   <button

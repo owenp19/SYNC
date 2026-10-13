@@ -30,7 +30,7 @@
     <ion-item lines="none" class="field">
       <ion-label>Departamento</ion-label>
       <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
-        @for (d of departments(); track d) {
+        @for (d of departments(); track d.id) {
           <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
         }
       </ion-select>
@@ -42,7 +42,7 @@
     <p class="note">El empleado no hace login: solo aparece como operador seleccionable en los dispositivos de su departamento.</p>
   </div>
 
-  @for (u of users(); track u) {
+  @for (u of users(); track u.id) {
     <div class="user-row">
       <ion-icon name="person-circle-outline"></ion-icon>
       <div class="info">
@@ -52,7 +52,7 @@
       <ion-item lines="none" class="dept-select">
         <ion-select [value]="u.department_id" placeholder="Depto" interface="popover" (ionChange)="changeDepartment(u, $event)">
           <ion-select-option [value]="null">Sin depto</ion-select-option>
-          @for (d of departments(); track d) {
+          @for (d of departments(); track d.id) {
             <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
           }
         </ion-select>

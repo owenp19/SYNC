@@ -68,7 +68,7 @@
       </div>
     </div>
     <h2 class="section-title">Estado por canal</h2>
-    @for (c of channels; track c) {
+    @for (c of channels; track c.id) {
       <div class="channel-row" [class.busy]="c.status === 'busy'">
         <span class="dot" [class.busy]="c.status === 'busy'"></span>
         <div class="info">
@@ -80,7 +80,7 @@
     }
     <h2 class="section-title">Historial</h2>
     <div class="timeline">
-      @for (e of events$ | async; track e) {
+      @for (e of events$ | async; track e.id) {
         <div class="event-row">
           <ion-icon name="pulse-outline"></ion-icon>
           <span class="msg"><strong>{{ e.user_name }}</strong> · {{ e.event }} en <strong>{{ e.channel_name }}</strong></span>

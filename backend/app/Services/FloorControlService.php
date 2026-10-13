@@ -191,7 +191,7 @@ class FloorControlService
             return null;
         }
 
-        return $this->clearLocked($locked, 'floor_expired') ?? 0;
+        return $this->clearLocked($locked, 'floor_expired');
     }
 
     /**

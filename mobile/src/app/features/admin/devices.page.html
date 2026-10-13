@@ -22,7 +22,7 @@
     <ion-item lines="none" class="field">
       <ion-label>Departamento</ion-label>
       <ion-select [(ngModel)]="newDeptId" interface="popover" placeholder="Seleccionar">
-        @for (d of departments(); track d) {
+        @for (d of departments(); track d.id) {
           <ion-select-option [value]="d.id">{{ d.name }}</ion-select-option>
         }
       </ion-select>
@@ -30,7 +30,7 @@
     <ion-button expand="block" class="cta" (click)="create()">Crear</ion-button>
   </div>
 
-  @for (d of devices(); track d) {
+  @for (d of devices(); track d.id) {
     <div class="user-row">
       <ion-icon name="wifi-outline"></ion-icon>
       <div class="info">
@@ -48,7 +48,7 @@
           <ion-button size="small" color="danger" (click)="revoke(d.id)">Revocar</ion-button>
         }
         <ion-select [value]="d.department_id" interface="popover" (ionChange)="reassign(d, $event)">
-          @for (dp of departments(); track dp) {
+          @for (dp of departments(); track dp.id) {
             <ion-select-option [value]="dp.id">{{ dp.name }}</ion-select-option>
           }
         </ion-select>

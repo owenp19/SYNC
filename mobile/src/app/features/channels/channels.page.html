@@ -77,7 +77,7 @@
       </div>
     }
     <div class="channel-list">
-      @for (c of channels; track c; let i = $index) {
+      @for (c of channels; track c.id; let i = $index) {
         <button class="channel-card" (click)="open(c)" [style.animation-delay]="i * 60 + 'ms'">
           <div class="icon-wrap" [style.background]="c.color + '1F'" [style.color]="c.color">
             <ion-icon [name]="c.icon"></ion-icon>

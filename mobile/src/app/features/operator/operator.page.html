@@ -8,7 +8,7 @@
     <div class="card">
       <p class="eyebrow">¿QUIÉN ESTÁ UTILIZANDO ESTE DISPOSITIVO?</p>
       <h2>Selecciona tu nombre</h2>
-      @for (o of operators; track o) {
+      @for (o of operators; track o.id) {
         <button class="operator-btn" (click)="choose(o.id)">
           <ion-icon name="person-circle-outline"></ion-icon> {{ o.name }}
         </button>
