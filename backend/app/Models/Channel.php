@@ -12,7 +12,8 @@ class Channel extends Model
 
     public function occupier()
     {
-        return $this->belongsTo(User::class, 'occupied_by');
+        // Compatibilidad: el "ocupante" visible es el operador actual (si lo hay).
+        return $this->belongsTo(User::class, 'occupied_operator_id');
     }
 
     public function occupiedDevice()

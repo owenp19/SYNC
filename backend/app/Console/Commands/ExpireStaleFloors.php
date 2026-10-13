@@ -16,7 +16,7 @@ class ExpireStaleFloors extends Command
     {
         $staleIds = Channel::whereNotNull('floor_expires_at')
             ->where('floor_expires_at', '<=', now())
-            ->where(fn ($q) => $q->whereNotNull('occupied_device_id')->orWhereNotNull('occupied_by'))
+            ->whereNotNull('occupied_device_id')
             ->pluck('id');
 
         $released = 0;

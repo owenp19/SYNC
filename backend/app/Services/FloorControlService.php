@@ -47,7 +47,7 @@ class FloorControlService
             $locked->update([
                 'occupied_device_id' => $deviceId,
                 'occupied_operator_id' => $operatorId,
-                'occupied_by' => $operatorId, // auditoría vía user del operador
+                'occupied_by' => null, // obsoleto: la ocupación se define por occupied_device_id
                 'floor_session_id' => $transmissionId,
                 'floor_expires_at' => now()->addSeconds(self::ttlSeconds()),
             ]);
@@ -231,7 +231,8 @@ class FloorControlService
 
     private function isOccupied(Channel $channel): bool
     {
-        return $channel->occupied_device_id !== null || $channel->occupied_by !== null;
+        // Única fuente de verdad: el device que posee el piso.
+        return $channel->occupied_device_id !== null;
     }
 
     private function revokeMicrophone(int $channelId, int $deviceId): void

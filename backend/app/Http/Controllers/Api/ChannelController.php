@@ -65,14 +65,14 @@ class ChannelController extends Controller
             $c->load('occupier:id,name', 'occupiedDevice:id,name');
         }
 
-        $occupied = $c->occupied_device_id !== null || $c->occupied_by !== null;
+        $occupied = $c->occupied_device_id !== null;
         $occupierName = $c->occupiedDevice?->name ?? $c->occupier?->name;
 
         return [
             'id' => $c->id,
             'name' => $c->name,
             'type' => $c->type,
-            'occupied_by' => $occupied ? ($c->occupied_device_id ?? $c->occupied_by) : null,
+            'occupied_by' => $occupied ? $c->occupied_device_id : null,
             'occupier_name' => $occupied ? $occupierName : null,
             'floor_expires_at' => $occupied ? $c->floor_expires_at?->toIso8601String() : null,
             'status' => $occupied ? 'busy' : 'free',
