@@ -17,8 +17,8 @@ info:
   contact:
     name: SYNC Team
 servers:
-  - url: http://localhost:8000/api
-    description: Desarrollo local
+  - url: /api
+    description: Servidor actual (localhost o LAN)
   - url: https://api.tudominio.com/api
     description: Producción
 tags:
